@@ -1,0 +1,14 @@
+name: domlx
+description: A Dart client library for oMLX (OpenAI-compatible LLM inference server for Apple Silicon).
+version: 1.0.0
+repository: https://github.com/jundot/omlx
+
+environment:
+  sdk: ^3.13.3
+
+dependencies:
+  http: ^1.6.0
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.6
