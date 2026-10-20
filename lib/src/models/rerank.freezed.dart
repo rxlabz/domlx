@@ -304,7 +304,7 @@ as bool?,
 /// @nodoc
 mixin _$RerankResult {
 
- int get index;@JsonKey(name: 'relevance_score') double get relevanceScore; String? get document;
+ int get index;@JsonKey(name: 'relevance_score') double get relevanceScore;@JsonKey(readValue: _readDocument) String? get document;
 /// Create a copy of RerankResult
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -342,7 +342,7 @@ abstract mixin class $RerankResultCopyWith<$Res>  {
   factory $RerankResultCopyWith(RerankResult value, $Res Function(RerankResult) _then) = _$RerankResultCopyWithImpl;
 @useResult
 $Res call({
- int index,@JsonKey(name: 'relevance_score') double relevanceScore, String? document
+ int index,@JsonKey(name: 'relevance_score') double relevanceScore,@JsonKey(readValue: _readDocument) String? document
 });
 
 
@@ -449,7 +449,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int index, @JsonKey(name: 'relevance_score')  double relevanceScore,  String? document)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int index, @JsonKey(name: 'relevance_score')  double relevanceScore, @JsonKey(readValue: _readDocument)  String? document)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RerankResult() when $default != null:
 return $default(_that.index,_that.relevanceScore,_that.document);case _:
@@ -470,7 +470,7 @@ return $default(_that.index,_that.relevanceScore,_that.document);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int index, @JsonKey(name: 'relevance_score')  double relevanceScore,  String? document)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int index, @JsonKey(name: 'relevance_score')  double relevanceScore, @JsonKey(readValue: _readDocument)  String? document)  $default,) {final _that = this;
 switch (_that) {
 case _RerankResult():
 return $default(_that.index,_that.relevanceScore,_that.document);case _:
@@ -490,7 +490,7 @@ return $default(_that.index,_that.relevanceScore,_that.document);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int index, @JsonKey(name: 'relevance_score')  double relevanceScore,  String? document)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int index, @JsonKey(name: 'relevance_score')  double relevanceScore, @JsonKey(readValue: _readDocument)  String? document)?  $default,) {final _that = this;
 switch (_that) {
 case _RerankResult() when $default != null:
 return $default(_that.index,_that.relevanceScore,_that.document);case _:
@@ -505,12 +505,12 @@ return $default(_that.index,_that.relevanceScore,_that.document);case _:
 @JsonSerializable()
 
 class _RerankResult implements RerankResult {
-  const _RerankResult({this.index = 0, @JsonKey(name: 'relevance_score') this.relevanceScore = 0.0, this.document});
+  const _RerankResult({this.index = 0, @JsonKey(name: 'relevance_score') this.relevanceScore = 0.0, @JsonKey(readValue: _readDocument) this.document});
   factory _RerankResult.fromJson(Map<String, dynamic> json) => _$RerankResultFromJson(json);
 
 @override@JsonKey() final  int index;
 @override@JsonKey(name: 'relevance_score') final  double relevanceScore;
-@override final  String? document;
+@override@JsonKey(readValue: _readDocument) final  String? document;
 
 /// Create a copy of RerankResult
 /// with the given fields replaced by the non-null parameter values.
@@ -547,7 +547,7 @@ abstract mixin class _$RerankResultCopyWith<$Res> implements $RerankResultCopyWi
   factory _$RerankResultCopyWith(_RerankResult value, $Res Function(_RerankResult) _then) = __$RerankResultCopyWithImpl;
 @override @useResult
 $Res call({
- int index,@JsonKey(name: 'relevance_score') double relevanceScore, String? document
+ int index,@JsonKey(name: 'relevance_score') double relevanceScore,@JsonKey(readValue: _readDocument) String? document
 });
 
 

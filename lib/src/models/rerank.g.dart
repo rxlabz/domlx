@@ -30,7 +30,7 @@ _RerankResult _$RerankResultFromJson(Map<String, dynamic> json) =>
     _RerankResult(
       index: (json['index'] as num?)?.toInt() ?? 0,
       relevanceScore: (json['relevance_score'] as num?)?.toDouble() ?? 0.0,
-      document: json['document'] as String?,
+      document: _readDocument(json, 'document') as String?,
     );
 
 Map<String, dynamic> _$RerankResultToJson(_RerankResult instance) =>

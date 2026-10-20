@@ -282,6 +282,39 @@ void main() {
       expect(results.first.document, 'Most relevant doc');
     });
 
+    test('POST /v1/rerank handles nested document Map objects', () async {
+      final mock = MockClient((request) async {
+        return http.Response(
+          jsonEncode({
+            'model': 'rerank-model',
+            'results': [
+              {
+                'index': 0,
+                'relevance_score': 0.99,
+                'document': {'text': 'Nested doc text'},
+              }
+            ],
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final client = OmlxClient(
+        baseUrl: 'http://localhost:8000',
+        client: mock,
+      );
+
+      final results = await client.rerank.rank(
+        model: 'rerank-model',
+        query: 'search query',
+        documents: ['doc 0'],
+      );
+
+      expect(results.length, 1);
+      expect(results.first.document, 'Nested doc text');
+    });
+
     test('Throws OmlxApiException on 401 Unauthorized', () async {
       final mock = MockClient((request) async {
         return http.Response(

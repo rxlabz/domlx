@@ -1,8 +1,22 @@
+import 'dart:convert';
+
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'common.dart';
 
 part 'rerank.freezed.dart';
 part 'rerank.g.dart';
+
+Object? _readDocument(Map json, String key) {
+  final val = json['document'];
+  if (val == null) return null;
+  if (val is String) return val;
+  if (val is Map) {
+    final text = val['text'];
+    if (text != null) return text.toString();
+    return jsonEncode(val);
+  }
+  return val.toString();
+}
 
 /// Request for `POST /v1/rerank`.
 @freezed
@@ -25,7 +39,7 @@ abstract class RerankResult with _$RerankResult {
   const factory RerankResult({
     @Default(0) int index,
     @JsonKey(name: 'relevance_score') @Default(0.0) double relevanceScore,
-    String? document,
+    @JsonKey(readValue: _readDocument) String? document,
   }) = _RerankResult;
 
   factory RerankResult.fromJson(Map<String, dynamic> json) =>

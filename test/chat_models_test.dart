@@ -181,6 +181,32 @@ void main() {
       expect(resp.results.length, 1);
       expect(resp.results.first.relevanceScore, 0.985);
       expect(resp.results.first.index, 0);
+      expect(resp.results.first.document, 'MLX is an array framework for Apple Silicon.');
+    });
+
+    test('parses RerankResponse when document is returned as a Map {text: ...}', () {
+      final responseJson = {
+        'model': 'bge-reranker-large',
+        'results': [
+          {
+            'index': 0,
+            'relevance_score': 0.985,
+            'document': {
+              'text': 'MLX is an array framework for Apple Silicon.',
+            },
+          },
+          {
+            'index': 1,
+            'relevance_score': 0.123,
+            'document': null,
+          }
+        ],
+      };
+
+      final resp = RerankResponse.fromJson(responseJson);
+      expect(resp.results.length, 2);
+      expect(resp.results[0].document, 'MLX is an array framework for Apple Silicon.');
+      expect(resp.results[1].document, isNull);
     });
 
     test('parses float EmbeddingResponse', () {
