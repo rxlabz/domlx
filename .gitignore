@@ -1,9 +1,6 @@
-# https://dart.dev/tools/private-files
-# Created by `dart pub`
 .dart_tool/
 .dart-tool/
 .pub-cache/
-.idea/
 
 pubspec.lock
 
@@ -28,4 +25,7 @@ doc/api/
 
 .flutter-plugins
 .flutter-plugins-dependencies
+
+.idea/
+coverage/
 
