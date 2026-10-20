@@ -119,8 +119,10 @@ abstract class ResponsesRequest with _$ResponsesRequest {
 }
 
 /// Output item in a Responses API response.
-@freezed
+@Freezed(toJson: false)
 abstract class ResponseOutputItem with _$ResponseOutputItem {
+  const ResponseOutputItem._();
+
   const factory ResponseOutputItem({
     required String id,
     @Default('message') String type,
@@ -129,8 +131,28 @@ abstract class ResponseOutputItem with _$ResponseOutputItem {
     @Default({}) Map<String, dynamic> extra,
   }) = _ResponseOutputItem;
 
-  factory ResponseOutputItem.fromJson(Map<String, dynamic> json) =>
-      _$ResponseOutputItemFromJson(json);
+  factory ResponseOutputItem.fromJson(Map<String, dynamic> json) {
+    final copy = Map<String, dynamic>.from(json);
+    final id = copy.remove('id') as String? ?? '';
+    final type = copy.remove('type') as String? ?? 'message';
+    final role = copy.remove('role') as String? ?? 'assistant';
+    final content = copy.remove('content');
+    return ResponseOutputItem(
+      id: id,
+      type: type,
+      role: role,
+      content: content,
+      extra: copy,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'type': type,
+        'role': role,
+        'content': ?content,
+        ...extra,
+      };
 }
 
 /// Response returned by `POST /v1/responses` (Codex compatibility).

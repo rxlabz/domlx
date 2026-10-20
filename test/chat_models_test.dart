@@ -321,6 +321,23 @@ void main() {
       expect(resp.id, 'resp_001');
       expect(resp.status, 'completed');
       expect(resp.outputText, contains('rev'));
+
+      final outItemWithExtras = ResponseOutputItem.fromJson({
+        'id': 'out_002',
+        'type': 'function_call',
+        'role': 'assistant',
+        'content': null,
+        'call_id': 'call_abc',
+        'function_name': 'execute_command',
+      });
+      expect(outItemWithExtras.id, 'out_002');
+      expect(outItemWithExtras.extra['call_id'], 'call_abc');
+      expect(outItemWithExtras.extra['function_name'], 'execute_command');
+
+      final serializedOut = outItemWithExtras.toJson();
+      expect(serializedOut['call_id'], 'call_abc');
+      expect(serializedOut['function_name'], 'execute_command');
+      expect(serializedOut.containsKey('extra'), isFalse);
     });
   });
 }

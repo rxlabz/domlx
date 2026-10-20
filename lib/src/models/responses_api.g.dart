@@ -6,24 +6,6 @@ part of 'responses_api.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_ResponseOutputItem _$ResponseOutputItemFromJson(Map<String, dynamic> json) =>
-    _ResponseOutputItem(
-      id: json['id'] as String,
-      type: json['type'] as String? ?? 'message',
-      role: json['role'] as String? ?? 'assistant',
-      content: json['content'],
-      extra: json['extra'] as Map<String, dynamic>? ?? const {},
-    );
-
-Map<String, dynamic> _$ResponseOutputItemToJson(_ResponseOutputItem instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'type': instance.type,
-      'role': instance.role,
-      'content': ?instance.content,
-      'extra': instance.extra,
-    };
-
 _ResponsesResponse _$ResponsesResponseFromJson(Map<String, dynamic> json) =>
     _ResponsesResponse(
       id: json['id'] as String,

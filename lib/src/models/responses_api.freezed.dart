@@ -601,7 +601,6 @@ as Map<String, dynamic>,
 
 }
 
-
 /// @nodoc
 mixin _$ResponseOutputItem {
 
@@ -612,8 +611,6 @@ mixin _$ResponseOutputItem {
 @pragma('vm:prefer-inline')
 $ResponseOutputItemCopyWith<ResponseOutputItem> get copyWith => _$ResponseOutputItemCopyWithImpl<ResponseOutputItem>(this as ResponseOutputItem, _$identity);
 
-  /// Serializes this ResponseOutputItem to a JSON map.
-  Map<String, dynamic> toJson();
 
 
 @override
@@ -622,7 +619,7 @@ bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is ResponseOutputItem&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.role, _this.role) || other.role == _this.role)&&const DeepCollectionEquality().equals(other.content, _this.content)&&const DeepCollectionEquality().equals(other.extra, _this.extra));
 }
 
-@JsonKey(includeFromJson: false, includeToJson: false)
+
 @override
 int get hashCode {
   final _this = this as ResponseOutputItem;
@@ -805,11 +802,11 @@ return $default(_that.id,_that.type,_that.role,_that.content,_that.extra);case _
 }
 
 /// @nodoc
-@JsonSerializable()
 
-class _ResponseOutputItem implements ResponseOutputItem {
-  const _ResponseOutputItem({required this.id, this.type = 'message', this.role = 'assistant', this.content,  Map<String, dynamic> extra = const {}}): _extra = extra;
-  factory _ResponseOutputItem.fromJson(Map<String, dynamic> json) => _$ResponseOutputItemFromJson(json);
+
+class _ResponseOutputItem extends ResponseOutputItem {
+  const _ResponseOutputItem({required this.id, this.type = 'message', this.role = 'assistant', this.content,  Map<String, dynamic> extra = const {}}): _extra = extra,super._();
+  
 
 @override final  String id;
 @override@JsonKey() final  String type;
@@ -829,17 +826,14 @@ class _ResponseOutputItem implements ResponseOutputItem {
 @pragma('vm:prefer-inline')
 _$ResponseOutputItemCopyWith<_ResponseOutputItem> get copyWith => __$ResponseOutputItemCopyWithImpl<_ResponseOutputItem>(this, _$identity);
 
-@override
-Map<String, dynamic> toJson() {
-  return _$ResponseOutputItemToJson(this, );
-}
+
 
 @override
 bool operator ==(Object other) {
     return identical(this, other) || (other.runtimeType == runtimeType&&other is _ResponseOutputItem&&(identical(other.id, id) || other.id == id)&&(identical(other.type, type) || other.type == type)&&(identical(other.role, role) || other.role == role)&&const DeepCollectionEquality().equals(other.content, content)&&const DeepCollectionEquality().equals(other.extra, _extra));
 }
 
-@JsonKey(includeFromJson: false, includeToJson: false)
+
 @override
 int get hashCode {
     return Object.hash(runtimeType,id,type,role,const DeepCollectionEquality().hash(content),const DeepCollectionEquality().hash(_extra));
