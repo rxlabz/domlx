@@ -176,6 +176,14 @@ void main() {
       expect(modelWithCustomProps.id, 'model-custom');
       expect(modelWithCustomProps.raw['context_length'], 32768);
       expect(modelWithCustomProps.raw['architecture'], 'qwen2');
+
+      final serializedModel = modelWithCustomProps.toJson();
+      expect(serializedModel.containsKey('raw'), isFalse);
+      expect(serializedModel['id'], 'model-custom');
+
+      final serializedHealth = health1.toJson();
+      expect(serializedHealth.containsKey('raw'), isFalse);
+      expect(serializedHealth['status'], 'ok');
     });
 
     test('Usage value equality and copyWith', () {

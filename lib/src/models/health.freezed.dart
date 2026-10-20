@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$HealthResponse {
 
- String get status; String? get version;@JsonKey(name: 'default_model') String? get defaultModel;@JsonKey(name: 'engine_pool') Map<String, dynamic>? get enginePool; Map<String, dynamic>? get mcp;@JsonKey(readValue: _readRaw) Map<String, dynamic> get raw;
+ String get status; String? get version;@JsonKey(name: 'default_model') String? get defaultModel;@JsonKey(name: 'engine_pool') Map<String, dynamic>? get enginePool; Map<String, dynamic>? get mcp;@JsonKey(readValue: _readRaw, includeToJson: false) Map<String, dynamic> get raw;
 /// Create a copy of HealthResponse
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -54,7 +54,7 @@ abstract mixin class $HealthResponseCopyWith<$Res>  {
   factory $HealthResponseCopyWith(HealthResponse value, $Res Function(HealthResponse) _then) = _$HealthResponseCopyWithImpl;
 @useResult
 $Res call({
- String status, String? version,@JsonKey(name: 'default_model') String? defaultModel,@JsonKey(name: 'engine_pool') Map<String, dynamic>? enginePool, Map<String, dynamic>? mcp,@JsonKey(readValue: _readRaw) Map<String, dynamic> raw
+ String status, String? version,@JsonKey(name: 'default_model') String? defaultModel,@JsonKey(name: 'engine_pool') Map<String, dynamic>? enginePool, Map<String, dynamic>? mcp,@JsonKey(readValue: _readRaw, includeToJson: false) Map<String, dynamic> raw
 });
 
 
@@ -164,7 +164,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String status,  String? version, @JsonKey(name: 'default_model')  String? defaultModel, @JsonKey(name: 'engine_pool')  Map<String, dynamic>? enginePool,  Map<String, dynamic>? mcp, @JsonKey(readValue: _readRaw)  Map<String, dynamic> raw)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String status,  String? version, @JsonKey(name: 'default_model')  String? defaultModel, @JsonKey(name: 'engine_pool')  Map<String, dynamic>? enginePool,  Map<String, dynamic>? mcp, @JsonKey(readValue: _readRaw, includeToJson: false)  Map<String, dynamic> raw)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _HealthResponse() when $default != null:
 return $default(_that.status,_that.version,_that.defaultModel,_that.enginePool,_that.mcp,_that.raw);case _:
@@ -185,7 +185,7 @@ return $default(_that.status,_that.version,_that.defaultModel,_that.enginePool,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String status,  String? version, @JsonKey(name: 'default_model')  String? defaultModel, @JsonKey(name: 'engine_pool')  Map<String, dynamic>? enginePool,  Map<String, dynamic>? mcp, @JsonKey(readValue: _readRaw)  Map<String, dynamic> raw)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String status,  String? version, @JsonKey(name: 'default_model')  String? defaultModel, @JsonKey(name: 'engine_pool')  Map<String, dynamic>? enginePool,  Map<String, dynamic>? mcp, @JsonKey(readValue: _readRaw, includeToJson: false)  Map<String, dynamic> raw)  $default,) {final _that = this;
 switch (_that) {
 case _HealthResponse():
 return $default(_that.status,_that.version,_that.defaultModel,_that.enginePool,_that.mcp,_that.raw);case _:
@@ -205,7 +205,7 @@ return $default(_that.status,_that.version,_that.defaultModel,_that.enginePool,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String status,  String? version, @JsonKey(name: 'default_model')  String? defaultModel, @JsonKey(name: 'engine_pool')  Map<String, dynamic>? enginePool,  Map<String, dynamic>? mcp, @JsonKey(readValue: _readRaw)  Map<String, dynamic> raw)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String status,  String? version, @JsonKey(name: 'default_model')  String? defaultModel, @JsonKey(name: 'engine_pool')  Map<String, dynamic>? enginePool,  Map<String, dynamic>? mcp, @JsonKey(readValue: _readRaw, includeToJson: false)  Map<String, dynamic> raw)?  $default,) {final _that = this;
 switch (_that) {
 case _HealthResponse() when $default != null:
 return $default(_that.status,_that.version,_that.defaultModel,_that.enginePool,_that.mcp,_that.raw);case _:
@@ -220,7 +220,7 @@ return $default(_that.status,_that.version,_that.defaultModel,_that.enginePool,_
 @JsonSerializable()
 
 class _HealthResponse extends HealthResponse {
-  const _HealthResponse({required this.status, this.version, @JsonKey(name: 'default_model') this.defaultModel, @JsonKey(name: 'engine_pool')  Map<String, dynamic>? enginePool,  Map<String, dynamic>? mcp, @JsonKey(readValue: _readRaw)  Map<String, dynamic> raw = const {}}): _enginePool = enginePool,_mcp = mcp,_raw = raw,super._();
+  const _HealthResponse({required this.status, this.version, @JsonKey(name: 'default_model') this.defaultModel, @JsonKey(name: 'engine_pool')  Map<String, dynamic>? enginePool,  Map<String, dynamic>? mcp, @JsonKey(readValue: _readRaw, includeToJson: false)  Map<String, dynamic> raw = const {}}): _enginePool = enginePool,_mcp = mcp,_raw = raw,super._();
   factory _HealthResponse.fromJson(Map<String, dynamic> json) => _$HealthResponseFromJson(json);
 
 @override final  String status;
@@ -245,7 +245,7 @@ class _HealthResponse extends HealthResponse {
 }
 
  final  Map<String, dynamic> _raw;
-@override@JsonKey(readValue: _readRaw) Map<String, dynamic> get raw {
+@override@JsonKey(readValue: _readRaw, includeToJson: false) Map<String, dynamic> get raw {
   if (_raw is EqualUnmodifiableMapView) return _raw;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableMapView(_raw);
@@ -287,7 +287,7 @@ abstract mixin class _$HealthResponseCopyWith<$Res> implements $HealthResponseCo
   factory _$HealthResponseCopyWith(_HealthResponse value, $Res Function(_HealthResponse) _then) = __$HealthResponseCopyWithImpl;
 @override @useResult
 $Res call({
- String status, String? version,@JsonKey(name: 'default_model') String? defaultModel,@JsonKey(name: 'engine_pool') Map<String, dynamic>? enginePool, Map<String, dynamic>? mcp,@JsonKey(readValue: _readRaw) Map<String, dynamic> raw
+ String status, String? version,@JsonKey(name: 'default_model') String? defaultModel,@JsonKey(name: 'engine_pool') Map<String, dynamic>? enginePool, Map<String, dynamic>? mcp,@JsonKey(readValue: _readRaw, includeToJson: false) Map<String, dynamic> raw
 });
 
 

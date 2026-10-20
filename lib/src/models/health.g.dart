@@ -23,5 +23,4 @@ Map<String, dynamic> _$HealthResponseToJson(_HealthResponse instance) =>
       'default_model': ?instance.defaultModel,
       'engine_pool': ?instance.enginePool,
       'mcp': ?instance.mcp,
-      'raw': instance.raw,
     };

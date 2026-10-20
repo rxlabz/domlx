@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ModelInfo {
 
- String get id; String get object; int? get created;@JsonKey(name: 'owned_by') String? get ownedBy;@JsonKey(readValue: _readRaw) Map<String, dynamic> get raw;
+ String get id; String get object; int? get created;@JsonKey(name: 'owned_by') String? get ownedBy;@JsonKey(readValue: _readRaw, includeToJson: false) Map<String, dynamic> get raw;
 /// Create a copy of ModelInfo
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -54,7 +54,7 @@ abstract mixin class $ModelInfoCopyWith<$Res>  {
   factory $ModelInfoCopyWith(ModelInfo value, $Res Function(ModelInfo) _then) = _$ModelInfoCopyWithImpl;
 @useResult
 $Res call({
- String id, String object, int? created,@JsonKey(name: 'owned_by') String? ownedBy,@JsonKey(readValue: _readRaw) Map<String, dynamic> raw
+ String id, String object, int? created,@JsonKey(name: 'owned_by') String? ownedBy,@JsonKey(readValue: _readRaw, includeToJson: false) Map<String, dynamic> raw
 });
 
 
@@ -163,7 +163,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String object,  int? created, @JsonKey(name: 'owned_by')  String? ownedBy, @JsonKey(readValue: _readRaw)  Map<String, dynamic> raw)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String object,  int? created, @JsonKey(name: 'owned_by')  String? ownedBy, @JsonKey(readValue: _readRaw, includeToJson: false)  Map<String, dynamic> raw)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ModelInfo() when $default != null:
 return $default(_that.id,_that.object,_that.created,_that.ownedBy,_that.raw);case _:
@@ -184,7 +184,7 @@ return $default(_that.id,_that.object,_that.created,_that.ownedBy,_that.raw);cas
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String object,  int? created, @JsonKey(name: 'owned_by')  String? ownedBy, @JsonKey(readValue: _readRaw)  Map<String, dynamic> raw)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String object,  int? created, @JsonKey(name: 'owned_by')  String? ownedBy, @JsonKey(readValue: _readRaw, includeToJson: false)  Map<String, dynamic> raw)  $default,) {final _that = this;
 switch (_that) {
 case _ModelInfo():
 return $default(_that.id,_that.object,_that.created,_that.ownedBy,_that.raw);case _:
@@ -204,7 +204,7 @@ return $default(_that.id,_that.object,_that.created,_that.ownedBy,_that.raw);cas
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String object,  int? created, @JsonKey(name: 'owned_by')  String? ownedBy, @JsonKey(readValue: _readRaw)  Map<String, dynamic> raw)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String object,  int? created, @JsonKey(name: 'owned_by')  String? ownedBy, @JsonKey(readValue: _readRaw, includeToJson: false)  Map<String, dynamic> raw)?  $default,) {final _that = this;
 switch (_that) {
 case _ModelInfo() when $default != null:
 return $default(_that.id,_that.object,_that.created,_that.ownedBy,_that.raw);case _:
@@ -219,7 +219,7 @@ return $default(_that.id,_that.object,_that.created,_that.ownedBy,_that.raw);cas
 @JsonSerializable()
 
 class _ModelInfo implements ModelInfo {
-  const _ModelInfo({required this.id, this.object = 'model', this.created, @JsonKey(name: 'owned_by') this.ownedBy, @JsonKey(readValue: _readRaw)  Map<String, dynamic> raw = const {}}): _raw = raw;
+  const _ModelInfo({required this.id, this.object = 'model', this.created, @JsonKey(name: 'owned_by') this.ownedBy, @JsonKey(readValue: _readRaw, includeToJson: false)  Map<String, dynamic> raw = const {}}): _raw = raw;
   factory _ModelInfo.fromJson(Map<String, dynamic> json) => _$ModelInfoFromJson(json);
 
 @override final  String id;
@@ -227,7 +227,7 @@ class _ModelInfo implements ModelInfo {
 @override final  int? created;
 @override@JsonKey(name: 'owned_by') final  String? ownedBy;
  final  Map<String, dynamic> _raw;
-@override@JsonKey(readValue: _readRaw) Map<String, dynamic> get raw {
+@override@JsonKey(readValue: _readRaw, includeToJson: false) Map<String, dynamic> get raw {
   if (_raw is EqualUnmodifiableMapView) return _raw;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableMapView(_raw);
@@ -269,7 +269,7 @@ abstract mixin class _$ModelInfoCopyWith<$Res> implements $ModelInfoCopyWith<$Re
   factory _$ModelInfoCopyWith(_ModelInfo value, $Res Function(_ModelInfo) _then) = __$ModelInfoCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String object, int? created,@JsonKey(name: 'owned_by') String? ownedBy,@JsonKey(readValue: _readRaw) Map<String, dynamic> raw
+ String id, String object, int? created,@JsonKey(name: 'owned_by') String? ownedBy,@JsonKey(readValue: _readRaw, includeToJson: false) Map<String, dynamic> raw
 });
 
 

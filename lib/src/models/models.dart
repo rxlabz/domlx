@@ -13,7 +13,9 @@ abstract class ModelInfo with _$ModelInfo {
     @Default('model') String object,
     int? created,
     @JsonKey(name: 'owned_by') String? ownedBy,
-    @JsonKey(readValue: _readRaw) @Default({}) Map<String, dynamic> raw,
+    @JsonKey(readValue: _readRaw, includeToJson: false)
+    @Default({})
+    Map<String, dynamic> raw,
   }) = _ModelInfo;
 
   factory ModelInfo.fromJson(Map<String, dynamic> json) =>

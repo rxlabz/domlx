@@ -16,7 +16,9 @@ abstract class HealthResponse with _$HealthResponse {
     @JsonKey(name: 'default_model') String? defaultModel,
     @JsonKey(name: 'engine_pool') Map<String, dynamic>? enginePool,
     Map<String, dynamic>? mcp,
-    @JsonKey(readValue: _readRaw) @Default({}) Map<String, dynamic> raw,
+    @JsonKey(readValue: _readRaw, includeToJson: false)
+    @Default({})
+    Map<String, dynamic> raw,
   }) = _HealthResponse;
 
   /// Whether the status indicates a healthy instance ('ok' or 'healthy').

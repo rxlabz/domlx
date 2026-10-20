@@ -20,7 +20,6 @@ Map<String, dynamic> _$ModelInfoToJson(_ModelInfo instance) =>
       'object': instance.object,
       'created': ?instance.created,
       'owned_by': ?instance.ownedBy,
-      'raw': instance.raw,
     };
 
 _ModelsResponse _$ModelsResponseFromJson(Map<String, dynamic> json) =>
