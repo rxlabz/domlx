@@ -205,6 +205,48 @@ void main() {
       expect(u3.cachedTokens, 5);
       expect(u3.promptTokens, 10);
       expect(u3, isNot(equals(u1)));
+
+      // Usage reading cached_tokens from prompt_tokens_details map
+      final uDetailsMap = Usage.fromJson({
+        'prompt_tokens': 10,
+        'prompt_tokens_details': {'cached_tokens': 7},
+      });
+      expect(uDetailsMap.cachedTokens, 7);
+    });
+
+    test('AudioSpeechRequest, ModelStatus, and UnloadModelResponse direct fromJson constructors', () {
+      final speechReq = AudioSpeechRequest.fromJson({
+        'model': 'tts-1',
+        'input': 'speech text',
+        'voice': 'alloy',
+        'response_format': 'mp3',
+        'speed': 1.0,
+      });
+      expect(speechReq.model, 'tts-1');
+      expect(speechReq.input, 'speech text');
+
+      final modelStatus = ModelStatus.fromJson({
+        'model_id': 'status-model',
+        'loaded': true,
+        'engine_type': 'mlx',
+      });
+      expect(modelStatus.modelId, 'status-model');
+      expect(modelStatus.isLoaded, isTrue);
+
+      final unloadModel = UnloadModelResponse.fromJson({
+        'success': true,
+        'model_id': 'unloaded-model',
+        'message': 'success evict',
+      });
+      expect(unloadModel.modelId, 'unloaded-model');
+      expect(unloadModel.success, isTrue);
+
+      final rerankReq = RerankRequest.fromJson({
+        'model': 'rr-model',
+        'query': 'query text',
+        'documents': ['d1'],
+      });
+      expect(rerankReq.model, 'rr-model');
     });
   });
 }

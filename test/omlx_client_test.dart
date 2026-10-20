@@ -766,5 +766,275 @@ void main() {
       ).toList();
       expect(tokens, ['Hello', ' world']);
     });
+
+    test('OmlxClient shortcuts and baseUrl/close properties', () async {
+      final mock = MockClient((request) async {
+        if (request.url.path == '/v1/chat/completions') {
+          return http.Response(
+            jsonEncode({
+              'id': 'chat-1',
+              'object': 'chat.completion',
+              'created': 1710000000,
+              'model': 'qwen',
+              'choices': [
+                {
+                  'index': 0,
+                  'message': {'role': 'assistant', 'content': 'Chat answer'},
+                }
+              ]
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        } else if (request.url.path == '/v1/embeddings') {
+          return http.Response(
+            jsonEncode({
+              'object': 'list',
+              'model': 'emb-1',
+              'data': [
+                {'index': 0, 'embedding': [0.5, 0.6]}
+              ]
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        } else if (request.url.path == '/v1/rerank') {
+          return http.Response(
+            jsonEncode({
+              'model': 'rr-1',
+              'results': [
+                {'index': 0, 'relevance_score': 0.8, 'document': 'doc a'}
+              ]
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        } else if (request.url.path == '/v1/responses') {
+          return http.Response(
+            jsonEncode({
+              'id': 'resp-1',
+              'object': 'response',
+              'created': 1710000000,
+              'model': 'qwen',
+              'status': 'completed',
+              'output': [],
+              'output_text': 'Response text',
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        }
+        return http.Response('{}', 200);
+      });
+
+      final client = OmlxClient(
+        baseUrl: 'http://localhost:8000',
+        client: mock,
+      );
+
+      expect(client.baseUrl.toString(), 'http://localhost:8000');
+
+      // createChatCompletion shortcut
+      final chatResp = await client.createChatCompletion(
+        ChatCompletionRequest(model: 'qwen', messages: [ChatMessage.user('Hi')]),
+      );
+      expect(chatResp.firstText, 'Chat answer');
+
+      // generateText shortcut with systemPrompt
+      final genText = await client.generateText(
+        model: 'qwen',
+        prompt: 'Hi',
+        systemPrompt: 'Be concise',
+        temperature: 0.7,
+        maxTokens: 50,
+      );
+      expect(genText, 'Chat answer');
+
+      // createEmbedding shortcut
+      final embResp = await client.createEmbedding(
+        const EmbeddingRequest(model: 'emb-1', input: 'test'),
+      );
+      expect(embResp.data.first.embedding, [0.5, 0.6]);
+
+      // createRerank shortcut
+      final rrResp = await client.createRerank(
+        const RerankRequest(model: 'rr-1', query: 'q', documents: ['doc a']),
+      );
+      expect(rrResp.results.first.document, 'doc a');
+
+      // createResponse shortcut
+      final respResp = await client.createResponse(
+        const ResponsesRequest(model: 'qwen', input: 'input text'),
+      );
+      expect(respResp.outputText, 'Response text');
+
+      // close()
+      expect(() => client.close(), returnsNormally);
+    });
+
+    test('ChatService generateText and streamText with systemPrompt and streaming shortcuts', () async {
+      final mock = MockClient.streaming((request, bodyStream) async {
+        final bodyString = await bodyStream.transform(utf8.decoder).join();
+        final body = jsonDecode(bodyString);
+        expect(body['messages'][0]['role'], 'system');
+        expect(body['messages'][0]['content'], 'System instructions');
+        expect(body['messages'][1]['role'], 'user');
+        expect(body['messages'][1]['content'], 'Hello');
+
+        final sseEvents = [
+          'data: {"id":"c-1","object":"chat.completion.chunk","created":1710000000,"model":"test","choices":[{"index":0,"delta":{"content":"Hello"},"finish_reason":null}]}\n\n',
+          'data: {"id":"c-2","object":"chat.completion.chunk","created":1710000000,"model":"test","choices":[{"index":0,"delta":{"content":"!"},"finish_reason":"stop"}]}\n\n',
+          'data: [DONE]\n\n',
+        ];
+
+        return http.StreamedResponse(
+          Stream.fromIterable(sseEvents.map(utf8.encode)),
+          200,
+          headers: {'content-type': 'text/event-stream'},
+        );
+      });
+
+      final client = OmlxClient(
+        baseUrl: 'http://localhost:8000',
+        client: mock,
+      );
+
+      final tokens = await client.streamText(
+        model: 'test',
+        prompt: 'Hello',
+        systemPrompt: 'System instructions',
+      ).toList();
+      expect(tokens, ['Hello', '!']);
+
+      final chunks = await client.createStreamChatCompletion(
+        ChatCompletionRequest(
+          model: 'test',
+          messages: [
+            ChatMessage.system('System instructions'),
+            ChatMessage.user('Hello'),
+          ],
+        ),
+      ).toList();
+      expect(chunks.length, 2);
+    });
+
+    test('ChatService streamEvents and streamReasoning with systemPrompt', () async {
+      final mock = MockClient.streaming((request, bodyStream) async {
+        final bodyString = await bodyStream.transform(utf8.decoder).join();
+        final body = jsonDecode(bodyString);
+        expect(body['messages'][0]['role'], 'system');
+
+        final sseEvents = [
+          'data: {"id":"c-1","object":"chat.completion.chunk","created":1710000000,"model":"test","choices":[{"index":0,"delta":{"reasoning_content":"Thinking"},"finish_reason":null}]}\n\n',
+          'data: {"id":"c-2","object":"chat.completion.chunk","created":1710000000,"model":"test","choices":[{"index":0,"delta":{"content":"Result"},"finish_reason":"stop"}]}\n\n',
+          'data: [DONE]\n\n',
+        ];
+
+        return http.StreamedResponse(
+          Stream.fromIterable(sseEvents.map(utf8.encode)),
+          200,
+          headers: {'content-type': 'text/event-stream'},
+        );
+      });
+
+      final client = OmlxClient(baseUrl: 'http://localhost:8000', client: mock);
+
+      final reasoning = await client.chat.streamReasoning(
+        model: 'test',
+        prompt: 'Hello',
+        systemPrompt: 'Sys',
+      ).toList();
+      expect(reasoning, ['Thinking']);
+
+      final events = await client.chat.streamEvents(
+        model: 'test',
+        prompt: 'Hello',
+        systemPrompt: 'Sys',
+      ).toList();
+      expect(events.length, 2);
+      expect(events[0], isA<ChatReasoningEvent>());
+      expect(events[1], isA<ChatContentEvent>());
+    });
+
+    test('AudioService transcribe with optional fields and non-Map fallback', () async {
+      final mock = MockClient.streaming((request, bodyStream) async {
+        final multipart = request as http.MultipartRequest;
+        expect(multipart.fields['language'], 'en');
+        expect(multipart.fields['prompt'], 'Specialized term');
+        expect(multipart.fields['response_format'], 'text');
+        expect(multipart.fields['temperature'], '0.2');
+
+        return http.StreamedResponse(
+          Stream.value(utf8.encode(jsonEncode('Raw transcription text string'))),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final client = OmlxClient(baseUrl: 'http://localhost:8000', client: mock);
+      final resp = await client.audio.transcribe(
+        AudioTranscriptionRequest(
+          model: 'whisper',
+          filename: 'audio.wav',
+          fileBytes: [0, 1],
+          language: 'en',
+          prompt: 'Specialized term',
+          responseFormat: 'text',
+          temperature: 0.2,
+        ),
+      );
+      expect(resp.text, 'Raw transcription text string');
+    });
+
+    test('EmbeddingsService createVector returns empty list when response data is empty or embedding is null', () async {
+      final mock = MockClient((request) async {
+        return http.Response(
+          jsonEncode({
+            'object': 'list',
+            'model': 'emb',
+            'data': [],
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final client = OmlxClient(baseUrl: 'http://localhost:8000', client: mock);
+      final vec = await client.embeddings.createVector(model: 'emb', text: 'test');
+      expect(vec, isEmpty);
+    });
+
+    test('ModelsService status handles map and non-Map responses, and unload fallback', () async {
+      // 1. status with map { "model-a": { ... } }
+      var mock = MockClient((request) async {
+        if (request.url.path == '/v1/models/status') {
+          return http.Response(
+            jsonEncode({
+              'model-a': {'loaded': true, 'engine_type': 'mlx'},
+              'model-b': {'loaded': false},
+            }),
+            200,
+            headers: {'content-type': 'application/json'},
+          );
+        } else if (request.url.path.contains('/unload')) {
+          return http.Response(jsonEncode('ok'), 200);
+        }
+        return http.Response('{}', 200);
+      });
+
+      var client = OmlxClient(baseUrl: 'http://localhost:8000', client: mock);
+      var statuses = await client.models.status();
+      expect(statuses.length, 2);
+      expect(statuses.any((s) => s.modelId == 'model-a' && s.isLoaded), isTrue);
+
+      final unloadRes = await client.models.unload('model-a');
+      expect(unloadRes.success, isTrue);
+
+      // 2. status with non-Map response
+      mock = MockClient((request) async => http.Response(jsonEncode([]), 200));
+      client = OmlxClient(baseUrl: 'http://localhost:8000', client: mock);
+      statuses = await client.models.status();
+      expect(statuses, isEmpty);
+    });
   });
 }

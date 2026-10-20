@@ -340,4 +340,295 @@ void main() {
       expect(serializedOut.containsKey('extra'), isFalse);
     });
   });
+
+  group('Additional Model Serialization & Edge Cases', () {
+    test('ChatReasoningEvent and ChatContentEvent toString', () {
+      const re = ChatReasoningEvent('thinking...');
+      expect(re.toString(), 'ChatReasoningEvent(thinking...)');
+
+      const ce = ChatContentEvent('hello');
+      expect(ce.toString(), 'ChatContentEvent(hello)');
+    });
+
+    test('ImageContentPart fromJson with string url vs Map', () {
+      final partFromString = ImageContentPart.fromJson({'image_url': 'http://image.png'});
+      expect(partFromString.url, 'http://image.png');
+      expect(partFromString.detail, isNull);
+
+      final partFromMap = ImageContentPart.fromJson({
+        'image_url': {'url': 'http://image.png', 'detail': 'low'}
+      });
+      expect(partFromMap.url, 'http://image.png');
+      expect(partFromMap.detail, 'low');
+    });
+
+    test('Tool.function factory and fromJson', () {
+      final tool = Tool.function(
+        name: 'test_func',
+        description: 'desc',
+        parameters: {'type': 'object'},
+      );
+      expect(tool.type, 'function');
+      expect(tool.function.name, 'test_func');
+      expect(tool.function.description, 'desc');
+
+      final toolFromJson = Tool.fromJson({
+        'type': 'function',
+        'function': {'name': 'fn'},
+      });
+      expect(toolFromJson.function.name, 'fn');
+    });
+
+    test('ChatMessage textContent with null, Map content, and non-list content', () {
+      const msgNull = ChatMessage(role: 'user', content: null);
+      expect(msgNull.textContent, '');
+
+      final msgMaps = ChatMessage(
+        role: 'user',
+        content: [
+          {'type': 'text', 'text': 'Part A '},
+          {'type': 'other'},
+        ],
+      );
+      expect(msgMaps.textContent, 'Part A ');
+
+      const msgInt = ChatMessage(role: 'user', content: 12345);
+      expect(msgInt.textContent, '12345');
+    });
+
+    test('ChatMessage JSON roundtrip with plain objects and empty tool_calls', () {
+      final msg = ChatMessage(
+        role: 'user',
+        content: ['raw string part'],
+      );
+      final json = msg.toJson();
+      expect(json['content'], ['raw string part']);
+
+      final parsed = ChatMessage.fromJson({
+        'role': 'user',
+        'content': 'hi',
+        'tool_calls': null,
+      });
+      expect(parsed.toolCalls, isNull);
+    });
+
+    test('ResponseFormat predefined constants and fromJson', () {
+      expect(ResponseFormat.text.type, 'text');
+      expect(ResponseFormat.jsonObject.type, 'json_object');
+
+      final schemaWithDesc = ResponseFormat.jsonSchema(
+        name: 'desc_schema',
+        schema: {'type': 'object'},
+        description: 'a schema with description',
+      );
+      expect(schemaWithDesc.jsonSchema?['description'], 'a schema with description');
+
+      final parsed = ResponseFormat.fromJson({
+        'type': 'json_schema',
+        'json_schema': {'name': 'schema_a'},
+      });
+      expect(parsed.type, 'json_schema');
+      expect(parsed.jsonSchema?['name'], 'schema_a');
+    });
+
+    test('ChatCompletion and ChatCompletionChunk getters with empty choices', () {
+      const completion = ChatCompletion(
+        id: '1',
+        created: 123,
+        model: 'm',
+        choices: [],
+      );
+      expect(completion.firstMessage, isNull);
+      expect(completion.firstText, '');
+      expect(completion.firstReasoningContent, isNull);
+
+      const chunk = ChatCompletionChunk(
+        id: '1',
+        created: 123,
+        model: 'm',
+        choices: [],
+      );
+      expect(chunk.firstDelta, isNull);
+      expect(chunk.firstContent, isNull);
+      expect(chunk.firstReasoningContent, isNull);
+    });
+
+    test('ChatCompletionRequest full serialization with all optional parameters', () {
+      final req = ChatCompletionRequest(
+        model: 'qwen',
+        messages: [ChatMessage.user('hi')],
+        temperature: 0.8,
+        topP: 0.9,
+        topK: 40,
+        repetitionPenalty: 1.1,
+        maxTokens: 100,
+        stream: true,
+        tools: [Tool.function(name: 'calc')],
+        toolChoice: 'auto',
+        responseFormat: ResponseFormat.jsonObject,
+        stop: ['STOP'],
+        user: 'user-42',
+      );
+
+      final json = req.toJson();
+      expect(json['temperature'], 0.8);
+      expect(json['top_p'], 0.9);
+      expect(json['top_k'], 40);
+      expect(json['repetition_penalty'], 1.1);
+      expect(json['max_tokens'], 100);
+      expect(json['stream'], isTrue);
+      expect(json['tools'], isNotEmpty);
+      expect(json['tool_choice'], 'auto');
+      expect(json['response_format']['type'], 'json_object');
+      expect(json['stop'], ['STOP']);
+      expect(json['user'], 'user-42');
+    });
+
+    test('CompletionRequest full serialization and TextCompletion empty choices', () {
+      const req = CompletionRequest(
+        model: 'davinci',
+        prompt: 'prompt',
+        temperature: 0.5,
+        topP: 0.95,
+        maxTokens: 50,
+        n: 2,
+        stream: false,
+        stop: 'END',
+        suffix: 'suffix',
+        echo: true,
+        user: 'user-1',
+      );
+      final json = req.toJson();
+      expect(json['temperature'], 0.5);
+      expect(json['top_p'], 0.95);
+      expect(json['max_tokens'], 50);
+      expect(json['n'], 2);
+      expect(json['stream'], isFalse);
+      expect(json['stop'], 'END');
+      expect(json['suffix'], 'suffix');
+      expect(json['echo'], isTrue);
+      expect(json['user'], 'user-1');
+
+      const textCompletion = TextCompletion(
+        id: 'c1',
+        created: 1,
+        model: 'm',
+        choices: [],
+      );
+      expect(textCompletion.firstText, '');
+    });
+
+    test('EmbeddingItem base64 reading and EmbeddingRequest.fromJson', () {
+      // 1. embedding as base64 string
+      final itemBase64 = EmbeddingItem.fromJson({
+        'index': 0,
+        'embedding': 'SGVsbG8=',
+      });
+      expect(itemBase64.embedding, isNull);
+      expect(itemBase64.base64Embedding, 'SGVsbG8=');
+
+      // 2. base64_embedding key
+      final itemBase64Key = EmbeddingItem.fromJson({
+        'index': 0,
+        'base64_embedding': 'V29ybGQ=',
+      });
+      expect(itemBase64Key.base64Embedding, 'V29ybGQ=');
+
+      // 3. EmbeddingRequest fromJson
+      final req = EmbeddingRequest.fromJson({
+        'model': 'emb',
+        'input': 'text',
+        'encoding_format': 'base64',
+        'dimensions': 256,
+        'user': 'u1',
+      });
+      expect(req.model, 'emb');
+      expect(req.dimensions, 256);
+      expect(req.encodingFormat, 'base64');
+    });
+
+    test('ModelStatus and UnloadModelResponse fallback parsing', () {
+      final status = ModelStatus.fromEntry('m1', {
+        'is_loaded': true,
+      });
+      expect(status.isLoaded, isTrue);
+
+      final unloadOk = UnloadModelResponse.fromResponse('m1', {'status': 'ok'});
+      expect(unloadOk.success, isTrue);
+
+      final unloadDetail = UnloadModelResponse.fromResponse('m1', {
+        'status': 'error',
+        'detail': 'Failed to evict',
+      });
+      expect(unloadDetail.success, isFalse);
+      expect(unloadDetail.message, 'Failed to evict');
+    });
+
+    test('Rerank _readDocument fallback for non-string document types', () {
+      // document map without text key
+      final r1 = RerankResult.fromJson({
+        'index': 0,
+        'relevance_score': 0.5,
+        'document': {'id': 123},
+      });
+      expect(r1.document, '{"id":123}');
+
+      // document primitive integer
+      final r2 = RerankResult.fromJson({
+        'index': 1,
+        'relevance_score': 0.1,
+        'document': 42,
+      });
+      expect(r2.document, '42');
+    });
+
+    test('Responses API InputItem and ResponsesRequest serialization edge cases', () {
+      final devItem = InputItem.developer('Be helpful');
+      expect(devItem.role, 'developer');
+      expect(devItem.content, 'Be helpful');
+
+      final userItem = InputItem.user('User text');
+      expect(userItem.role, 'user');
+      expect(userItem.content, 'User text');
+
+      final parsedUserItem = InputItem.fromJson({
+        'role': 'user',
+        'content': 'hello json',
+        'type': 'message',
+      });
+      expect(parsedUserItem.role, 'user');
+      expect(parsedUserItem.content, 'hello json');
+      expect(parsedUserItem.type, 'message');
+
+      final itemWithType = const InputItem(
+        role: 'user',
+        content: 'Hi',
+        type: 'custom_type',
+        extra: {'k': 'v'},
+      );
+      final itemJson = itemWithType.toJson();
+      expect(itemJson['type'], 'custom_type');
+      expect(itemJson['k'], 'v');
+
+      final req = ResponsesRequest(
+        model: 'm',
+        input: [itemWithType, 'raw string input'],
+        instructions: 'Sys',
+        previousResponseId: 'resp-prev',
+        store: false,
+        tools: [Tool.function(name: 't1')],
+        extra: {'custom': 1},
+      );
+      final reqJson = req.toJson();
+      expect(reqJson['instructions'], 'Sys');
+      expect(reqJson['previous_response_id'], 'resp-prev');
+      expect(reqJson['store'], isFalse);
+      expect(reqJson['tools'], isNotEmpty);
+      expect(reqJson['custom'], 1);
+
+      final parsedReq = ResponsesRequest.fromJson(reqJson);
+      expect(parsedReq.instructions, 'Sys');
+      expect(parsedReq.previousResponseId, 'resp-prev');
+    });
+  });
 }
