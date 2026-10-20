@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import '../exceptions.dart';
 
@@ -121,7 +122,7 @@ class OmlxHttpClient {
   }
 
   /// Sends a POST request and returns raw binary bytes (e.g. for audio TTS).
-  Future<List<int>> postBinary(
+  Future<Uint8List> postBinary(
     String path, {
     Object? body,
     Map<String, dynamic>? queryParameters,

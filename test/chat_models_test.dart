@@ -48,6 +48,25 @@ void main() {
       final parsed = ChatMessage.fromJson(json);
       expect(parsed.textContent, 'What is in this image?');
       expect(parsed.content, isA<List>());
+
+      final userPartsMsg = ChatMessage.userParts([
+        ContentPart.text('Hello typed user parts'),
+      ]);
+      expect(userPartsMsg.role, 'user');
+      expect(userPartsMsg.textContent, 'Hello typed user parts');
+    });
+
+    test('supports ToolChoice typed helper constants and functions', () {
+      expect(ToolChoice.none, 'none');
+      expect(ToolChoice.auto, 'auto');
+      expect(ToolChoice.required, 'required');
+      expect(
+        ToolChoice.function('my_func'),
+        {
+          'type': 'function',
+          'function': {'name': 'my_func'},
+        },
+      );
     });
 
     test('supports tool calling in message', () {
@@ -185,6 +204,18 @@ void main() {
       final resp = EmbeddingResponse.fromJson(json);
       expect(resp.data.first.embedding, [0.12, -0.34, 0.56]);
       expect(resp.data.first.index, 0);
+
+      final singleReq = EmbeddingRequest.single(
+        model: 'bge-micro',
+        text: 'Hello single',
+      );
+      expect(singleReq.input, 'Hello single');
+
+      final batchReq = EmbeddingRequest.batch(
+        model: 'bge-micro',
+        texts: ['Hello 1', 'Hello 2'],
+      );
+      expect(batchReq.input, ['Hello 1', 'Hello 2']);
     });
   });
 

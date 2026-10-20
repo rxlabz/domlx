@@ -152,6 +152,26 @@ abstract class Tool with _$Tool {
   factory Tool.fromJson(Map<String, dynamic> json) => _$ToolFromJson(json);
 }
 
+/// Helper for configuring `tool_choice` in chat completions.
+class ToolChoice {
+  const ToolChoice._();
+
+  /// Model will not call any tool.
+  static const none = 'none';
+
+  /// Model can pick between generating a message or calling one or more tools.
+  static const auto = 'auto';
+
+  /// Model must call one or more tools.
+  static const required = 'required';
+
+  /// Forces the model to call a specific tool function.
+  static Map<String, dynamic> function(String name) => {
+        'type': 'function',
+        'function': {'name': name},
+      };
+}
+
 /// Specific function call inside a tool call.
 @freezed
 abstract class FunctionCall with _$FunctionCall {
@@ -233,6 +253,10 @@ abstract class ChatMessage with _$ChatMessage {
 
   factory ChatMessage.user(dynamic content) =>
       ChatMessage(role: 'user', content: content);
+
+  /// Convenient typed constructor for multi-modal user messages.
+  factory ChatMessage.userParts(List<ContentPart> parts) =>
+      ChatMessage(role: 'user', content: parts);
 
   factory ChatMessage.assistant(
     String? content, {

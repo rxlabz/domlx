@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:domlx/domlx.dart';
 import 'package:domlx/src/client/http_client.dart';
 import 'package:http/http.dart' as http;
@@ -605,6 +606,90 @@ void main() {
           ),
         ),
       );
+    });
+
+    test('AudioService.speech returns Uint8List binary bytes', () async {
+      final mock = MockClient((request) async {
+        expect(request.method, 'POST');
+        expect(request.url.path, '/v1/audio/speech');
+        return http.Response.bytes(
+          [10, 20, 30, 40],
+          200,
+          headers: {'content-type': 'audio/mpeg'},
+        );
+      });
+
+      final client = OmlxClient(
+        baseUrl: 'http://localhost:8000',
+        client: mock,
+      );
+
+      final bytes = await client.audio.speech(
+        const AudioSpeechRequest(
+          model: 'tts-1',
+          input: 'Hello',
+          voice: 'alloy',
+        ),
+      );
+
+      expect(bytes, isA<Uint8List>());
+      expect(bytes, [10, 20, 30, 40]);
+    });
+
+    test('CompletionsService creates text completion and handles shortcuts', () async {
+      final mock = MockClient((request) async {
+        expect(request.method, 'POST');
+        expect(request.url.path, '/v1/completions');
+
+        final body = jsonDecode(request.body) as Map<String, dynamic>;
+        expect(body['model'], 'text-davinci-003');
+        expect(body['prompt'], 'Once upon a time');
+
+        return http.Response(
+          jsonEncode({
+            'id': 'cmpl-123',
+            'object': 'text_completion',
+            'created': 1710000000,
+            'model': 'text-davinci-003',
+            'choices': [
+              {
+                'text': ' in a galaxy far, far away...',
+                'index': 0,
+                'finish_reason': 'stop',
+              }
+            ],
+            'usage': {
+              'prompt_tokens': 4,
+              'completion_tokens': 8,
+              'total_tokens': 12,
+            }
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final client = OmlxClient(
+        baseUrl: 'http://localhost:8000',
+        client: mock,
+      );
+
+      final completion = await client.createCompletion(
+        const CompletionRequest(
+          model: 'text-davinci-003',
+          prompt: 'Once upon a time',
+        ),
+      );
+
+      expect(completion.id, 'cmpl-123');
+      expect(completion.firstText, ' in a galaxy far, far away...');
+      expect(completion.usage?.totalTokens, 12);
+
+      final generated = await client.completions.generate(
+        model: 'text-davinci-003',
+        prompt: 'Once upon a time',
+      );
+      expect(generated, ' in a galaxy far, far away...');
     });
   });
 }

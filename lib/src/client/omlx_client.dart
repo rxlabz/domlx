@@ -1,5 +1,6 @@
 import 'package:http/http.dart' as http;
 import '../models/chat.dart';
+import '../models/completions.dart';
 import '../models/embeddings.dart';
 import '../models/health.dart';
 import '../models/models.dart';
@@ -7,6 +8,7 @@ import '../models/rerank.dart';
 import '../models/responses_api.dart';
 import '../services/audio_service.dart';
 import '../services/chat_service.dart';
+import '../services/completions_service.dart';
 import '../services/embeddings_service.dart';
 import '../services/models_service.dart';
 import '../services/rerank_service.dart';
@@ -41,6 +43,9 @@ class OmlxClient {
   /// Chat completion service (`/v1/chat/completions`).
   final ChatService chat;
 
+  /// Text completion service (`/v1/completions`).
+  final CompletionsService completions;
+
   /// Models management service (`/v1/models`, `/v1/models/status`, `/v1/models/{id}/unload`).
   final ModelsService models;
 
@@ -58,6 +63,7 @@ class OmlxClient {
 
   OmlxClient._(this._httpClient)
       : chat = ChatService(_httpClient),
+        completions = CompletionsService(_httpClient),
         models = ModelsService(_httpClient),
         embeddings = EmbeddingsService(_httpClient),
         rerank = RerankService(_httpClient),
@@ -140,6 +146,15 @@ class OmlxClient {
         temperature: temperature,
         maxTokens: maxTokens,
       );
+
+  /// Convenience shortcut for `completions.create(...)`.
+  Future<TextCompletion> createCompletion(CompletionRequest request) =>
+      completions.create(request);
+
+  /// Convenience shortcut for `completions.createStream(...)`.
+  Stream<Map<String, dynamic>> createStreamCompletion(
+          CompletionRequest request) =>
+      completions.createStream(request);
 
   /// Convenience shortcut for `models.list()`.
   Future<ModelsResponse> listModels() => models.list();

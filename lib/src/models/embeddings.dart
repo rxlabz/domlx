@@ -39,6 +39,38 @@ abstract class EmbeddingRequest with _$EmbeddingRequest {
     String? user,
   }) = _EmbeddingRequest;
 
+  /// Typed factory for single text input.
+  factory EmbeddingRequest.single({
+    required String model,
+    required String text,
+    String? encodingFormat,
+    int? dimensions,
+    String? user,
+  }) =>
+      EmbeddingRequest(
+        model: model,
+        input: text,
+        encodingFormat: encodingFormat,
+        dimensions: dimensions,
+        user: user,
+      );
+
+  /// Typed factory for batch text inputs.
+  factory EmbeddingRequest.batch({
+    required String model,
+    required List<String> texts,
+    String? encodingFormat,
+    int? dimensions,
+    String? user,
+  }) =>
+      EmbeddingRequest(
+        model: model,
+        input: texts,
+        encodingFormat: encodingFormat,
+        dimensions: dimensions,
+        user: user,
+      );
+
   factory EmbeddingRequest.fromJson(Map<String, dynamic> json) =>
       _$EmbeddingRequestFromJson(json);
 }

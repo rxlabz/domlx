@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import '../client/http_client.dart';
 import '../models/audio.dart';
@@ -40,7 +41,7 @@ class AudioService {
   }
 
   /// Synthesizes text into audio bytes (`POST /v1/audio/speech`).
-  Future<List<int>> speech(AudioSpeechRequest request) async {
+  Future<Uint8List> speech(AudioSpeechRequest request) async {
     return _client.postBinary('/v1/audio/speech', body: request.toJson());
   }
 }
