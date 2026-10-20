@@ -3,6 +3,7 @@
 .dart_tool/
 .dart-tool/
 .pub-cache/
+.idea/
 
 pubspec.lock
 
