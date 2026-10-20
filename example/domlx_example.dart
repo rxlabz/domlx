@@ -2,12 +2,12 @@ import 'dart:io';
 
 import 'package:domlx/domlx.dart';
 
+// ignore: non_constant_identifier_names
+final OMLX_KEY = const String.fromEnvironment('OMLX_KEY');
+
 void main() async {
   // Connect to a local oMLX server running on port 8000
-  final client = OmlxClient(
-    baseUrl: 'http://localhost:8000',
-    apiKey: 'sk-omlx-kjM1F8KZXQCvmB30RQyHjMVS',
-  );
+  final client = OmlxClient(baseUrl: 'http://localhost:8000', apiKey: OMLX_KEY);
 
   try {
     print('=== 1. Checking oMLX Server Health ===');
@@ -142,7 +142,7 @@ void main() async {
 
     print('=== 7. Semantic Document Reranking ===');
     final rerankResults = await client.rerank.rank(
-      model: 'bge-reranker-large',
+      model: 'mlx-community/jina-reranker-v3-mlx',
       query: 'What is Apple Silicon MLX framework?',
       documents: [
         'MLX is an array framework designed specifically for machine learning on Apple silicon.',
@@ -161,7 +161,7 @@ void main() async {
 
     print('=== 8. Text Embeddings ===');
     final vector = await client.embeddings.createVector(
-      model: 'bge-micro',
+      model: 'mlx-community/bge-m3-mlx-4bit',
       text: 'Semantic search with local Apple Silicon embeddings.',
     );
     print('Vector dimensions: ${vector.length}');
