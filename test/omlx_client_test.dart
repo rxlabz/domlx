@@ -724,5 +724,47 @@ void main() {
       );
       expect(generated, ' in a galaxy far, far away...');
     });
+
+    test('CompletionsService createStream and streamText stream typed TextCompletion chunks', () async {
+      final mock = MockClient.streaming((request, bodyStream) async {
+        expect(request.method, 'POST');
+        expect(request.url.path, '/v1/completions');
+
+        final sseEvents = [
+          'data: {"id":"cmpl-s-1","object":"text_completion","created":1710000000,"model":"text-davinci-003","choices":[{"text":"Hello","index":0,"finish_reason":null}]}\n\n',
+          'data: {"id":"cmpl-s-2","object":"text_completion","created":1710000000,"model":"text-davinci-003","choices":[{"text":" world","index":0,"finish_reason":"stop"}]}\n\n',
+          'data: [DONE]\n\n',
+        ];
+
+        return http.StreamedResponse(
+          Stream.fromIterable(sseEvents.map(utf8.encode)),
+          200,
+          headers: {'content-type': 'text/event-stream'},
+        );
+      });
+
+      final client = OmlxClient(
+        baseUrl: 'http://localhost:8000',
+        client: mock,
+      );
+
+      final chunks = await client.createStreamCompletion(
+        const CompletionRequest(
+          model: 'text-davinci-003',
+          prompt: 'Hi',
+        ),
+      ).toList();
+
+      expect(chunks.length, 2);
+      expect(chunks[0], isA<TextCompletion>());
+      expect(chunks[0].firstText, 'Hello');
+      expect(chunks[1].firstText, ' world');
+
+      final tokens = await client.streamCompletionText(
+        model: 'text-davinci-003',
+        prompt: 'Hi',
+      ).toList();
+      expect(tokens, ['Hello', ' world']);
+    });
   });
 }

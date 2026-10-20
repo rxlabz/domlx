@@ -14,10 +14,37 @@ class CompletionsService {
     return TextCompletion.fromJson(json as Map<String, dynamic>);
   }
 
-  /// Creates a streaming text completion emitting partial SSE chunk maps.
-  Stream<Map<String, dynamic>> createStream(CompletionRequest request) {
+  /// Creates a streaming text completion emitting strongly-typed chunks.
+  Stream<TextCompletion> createStream(CompletionRequest request) async* {
     final payload = request.copyWith(stream: true).toJson();
-    return _client.postStream('/v1/completions', body: payload);
+    final stream = _client.postStream('/v1/completions', body: payload);
+    await for (final json in stream) {
+      yield TextCompletion.fromJson(json);
+    }
+  }
+
+  /// Convenience method to stream text tokens directly.
+  Stream<String> streamText({
+    required String model,
+    required String prompt,
+    double? temperature,
+    int? maxTokens,
+  }) async* {
+    final chunkStream = createStream(
+      CompletionRequest(
+        model: model,
+        prompt: prompt,
+        temperature: temperature,
+        maxTokens: maxTokens,
+      ),
+    );
+
+    await for (final chunk in chunkStream) {
+      final token = chunk.firstText;
+      if (token.isNotEmpty) {
+        yield token;
+      }
+    }
   }
 
   /// Convenience method to generate simple text completion.

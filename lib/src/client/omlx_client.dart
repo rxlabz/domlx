@@ -152,9 +152,22 @@ class OmlxClient {
       completions.create(request);
 
   /// Convenience shortcut for `completions.createStream(...)`.
-  Stream<Map<String, dynamic>> createStreamCompletion(
-          CompletionRequest request) =>
+  Stream<TextCompletion> createStreamCompletion(CompletionRequest request) =>
       completions.createStream(request);
+
+  /// Convenience shortcut for `completions.streamText(...)`.
+  Stream<String> streamCompletionText({
+    required String model,
+    required String prompt,
+    double? temperature,
+    int? maxTokens,
+  }) =>
+      completions.streamText(
+        model: model,
+        prompt: prompt,
+        temperature: temperature,
+        maxTokens: maxTokens,
+      );
 
   /// Convenience shortcut for `models.list()`.
   Future<ModelsResponse> listModels() => models.list();
