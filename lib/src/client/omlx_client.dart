@@ -156,6 +156,10 @@ class OmlxClient {
   Future<ResponsesResponse> createResponse(ResponsesRequest request) =>
       responses.create(request);
 
+  /// Convenience shortcut for `responses.createStream(...)` (OpenAI Responses API).
+  Stream<Map<String, dynamic>> createStreamResponse(ResponsesRequest request) =>
+      responses.createStream(request);
+
   /// Closes the client and any open resources.
   void close() {
     _httpClient.close();

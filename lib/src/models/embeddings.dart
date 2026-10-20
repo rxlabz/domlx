@@ -1,126 +1,77 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'common.dart';
 
+part 'embeddings.freezed.dart';
+part 'embeddings.g.dart';
+
+Object? _readEmbedding(Map json, String key) {
+  final val = json['embedding'];
+  if (val is List) {
+    return val.map((e) => (e as num).toDouble()).toList();
+  }
+  return null;
+}
+
+Object? _readBase64(Map json, String key) {
+  final val = json['embedding'];
+  if (val is String) {
+    return val;
+  }
+  return json['base64_embedding'];
+}
+
 /// Request for `POST /v1/embeddings`.
-class EmbeddingRequest {
-  final String model;
+@freezed
+abstract class EmbeddingRequest with _$EmbeddingRequest {
+  const factory EmbeddingRequest({
+    required String model,
 
-  /// Input text string or list of text strings.
-  final dynamic input;
+    /// Input text string or list of text strings.
+    required dynamic input,
 
-  /// Optional encoding format: "float" (default) or "base64".
-  final String? encodingFormat;
+    /// Optional encoding format: "float" (default) or "base64".
+    @JsonKey(name: 'encoding_format') String? encodingFormat,
 
-  /// Optional dimension cutoff if supported by model.
-  final int? dimensions;
+    /// Optional dimension cutoff if supported by model.
+    int? dimensions,
 
-  /// User identifier.
-  final String? user;
+    /// User identifier.
+    String? user,
+  }) = _EmbeddingRequest;
 
-  const EmbeddingRequest({
-    required this.model,
-    required this.input,
-    this.encodingFormat,
-    this.dimensions,
-    this.user,
-  });
-
-  Map<String, dynamic> toJson() => {
-        'model': model,
-        'input': input,
-        if (encodingFormat != null) 'encoding_format': encodingFormat,
-        if (dimensions != null) 'dimensions': dimensions,
-        if (user != null) 'user': user,
-      };
-
-  @override
-  String toString() => 'EmbeddingRequest(model: $model, encodingFormat: $encodingFormat)';
+  factory EmbeddingRequest.fromJson(Map<String, dynamic> json) =>
+      _$EmbeddingRequestFromJson(json);
 }
 
 /// An individual embedding result vector or base64 representation.
-class EmbeddingItem {
-  final int index;
-  final String object;
+@freezed
+abstract class EmbeddingItem with _$EmbeddingItem {
+  const factory EmbeddingItem({
+    @Default(0) int index,
+    @Default('embedding') String object,
 
-  /// The embedding vector when encoding is float.
-  final List<double>? embedding;
+    /// The embedding vector when encoding is float.
+    @JsonKey(readValue: _readEmbedding) List<double>? embedding,
 
-  /// The base64-encoded vector string when encoding is base64.
-  final String? base64Embedding;
+    /// The base64-encoded vector string when encoding is base64.
+    @JsonKey(name: 'base64_embedding', readValue: _readBase64)
+    String? base64Embedding,
+  }) = _EmbeddingItem;
 
-  const EmbeddingItem({
-    required this.index,
-    this.object = 'embedding',
-    this.embedding,
-    this.base64Embedding,
-  });
-
-  factory EmbeddingItem.fromJson(Map<String, dynamic> json) {
-    final raw = json['embedding'];
-    List<double>? vector;
-    String? b64;
-
-    if (raw is List) {
-      vector = raw.map((e) => (e as num).toDouble()).toList();
-    } else if (raw is String) {
-      b64 = raw;
-    }
-
-    return EmbeddingItem(
-      index: (json['index'] as num?)?.toInt() ?? 0,
-      object: json['object'] as String? ?? 'embedding',
-      embedding: vector,
-      base64Embedding: b64,
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'index': index,
-        'object': object,
-        if (embedding != null) 'embedding': embedding,
-        if (base64Embedding != null) 'embedding': base64Embedding,
-      };
-
-  @override
-  String toString() =>
-      'EmbeddingItem(index: $index, dim: ${embedding?.length ?? base64Embedding?.length})';
+  factory EmbeddingItem.fromJson(Map<String, dynamic> json) =>
+      _$EmbeddingItemFromJson(json);
 }
 
 /// Response returned by `POST /v1/embeddings`.
-class EmbeddingResponse {
-  final String object;
-  final String model;
-  final List<EmbeddingItem> data;
-  final Usage? usage;
+@freezed
+abstract class EmbeddingResponse with _$EmbeddingResponse {
+  const factory EmbeddingResponse({
+    @Default('list') String object,
+    required String model,
+    required List<EmbeddingItem> data,
+    Usage? usage,
+  }) = _EmbeddingResponse;
 
-  const EmbeddingResponse({
-    this.object = 'list',
-    required this.model,
-    required this.data,
-    this.usage,
-  });
-
-  factory EmbeddingResponse.fromJson(Map<String, dynamic> json) {
-    final list = json['data'] as List<dynamic>? ?? [];
-    return EmbeddingResponse(
-      object: json['object'] as String? ?? 'list',
-      model: json['model'] as String? ?? '',
-      data: list
-          .whereType<Map<String, dynamic>>()
-          .map((e) => EmbeddingItem.fromJson(e))
-          .toList(),
-      usage: json['usage'] is Map<String, dynamic>
-          ? Usage.fromJson(json['usage'] as Map<String, dynamic>)
-          : null,
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'object': object,
-        'model': model,
-        'data': data.map((e) => e.toJson()).toList(),
-        if (usage != null) 'usage': usage!.toJson(),
-      };
-
-  @override
-  String toString() => 'EmbeddingResponse(model: $model, count: ${data.length})';
+  factory EmbeddingResponse.fromJson(Map<String, dynamic> json) =>
+      _$EmbeddingResponseFromJson(json);
 }

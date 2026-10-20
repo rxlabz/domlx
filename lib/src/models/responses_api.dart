@@ -1,19 +1,21 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'chat.dart';
 import 'common.dart';
 
-/// Item in the input list for the OpenAI Responses API (`/v1/responses`).
-class InputItem {
-  final String role;
-  final dynamic content;
-  final String? type;
-  final Map<String, dynamic> extra;
+part 'responses_api.freezed.dart';
+part 'responses_api.g.dart';
 
-  const InputItem({
-    required this.role,
-    required this.content,
-    this.type,
-    this.extra = const {},
-  });
+/// Item in the input list for the OpenAI Responses API (`/v1/responses`).
+@freezed
+abstract class InputItem with _$InputItem {
+  const InputItem._();
+
+  const factory InputItem({
+    required String role,
+    required dynamic content,
+    String? type,
+    @Default({}) Map<String, dynamic> extra,
+  }) = _InputItem;
 
   factory InputItem.developer(String instructions) =>
       InputItem(role: 'developer', content: instructions);
@@ -40,42 +42,34 @@ class InputItem {
         if (type != null) 'type': type,
         ...extra,
       };
-
-  @override
-  String toString() => 'InputItem(role: $role, content: $content)';
 }
 
 /// Request for `POST /v1/responses`.
-class ResponsesRequest {
-  final String model;
+@freezed
+abstract class ResponsesRequest with _$ResponsesRequest {
+  const ResponsesRequest._();
 
-  /// String prompt or list of input items.
-  final dynamic input;
+  const factory ResponsesRequest({
+    required String model,
 
-  /// System instructions prepended to the prompt.
-  final String? instructions;
+    /// String prompt or list of input items.
+    required dynamic input,
 
-  /// ID of a previous response to continue context from `ResponseStore`.
-  final String? previousResponseId;
+    /// System instructions prepended to the prompt.
+    String? instructions,
 
-  /// Whether to persist this response in the `ResponseStore`.
-  final bool? store;
+    /// ID of a previous response to continue context from `ResponseStore`.
+    @JsonKey(name: 'previous_response_id') String? previousResponseId,
 
-  /// Available tools for function calling.
-  final List<Tool>? tools;
+    /// Whether to persist this response in the `ResponseStore`.
+    bool? store,
 
-  /// Additional parameters.
-  final Map<String, dynamic> extra;
+    /// Available tools for function calling.
+    List<Tool>? tools,
 
-  const ResponsesRequest({
-    required this.model,
-    required this.input,
-    this.instructions,
-    this.previousResponseId,
-    this.store,
-    this.tools,
-    this.extra = const {},
-  });
+    /// Additional parameters.
+    @Default({}) Map<String, dynamic> extra,
+  }) = _ResponsesRequest;
 
   Map<String, dynamic> toJson() {
     dynamic serializedInput = input;
@@ -88,108 +82,72 @@ class ResponsesRequest {
 
     return {
       'model': model,
-      'input': serializedInput,
-      if (instructions != null) 'instructions': instructions,
-      if (previousResponseId != null)
-        'previous_response_id': previousResponseId,
-      if (store != null) 'store': store,
+      'input': ?serializedInput,
+      'instructions': ?instructions,
+      'previous_response_id': ?previousResponseId,
+      'store': ?store,
       if (tools != null && tools!.isNotEmpty)
         'tools': tools!.map((t) => t.toJson()).toList(),
       ...extra,
     };
   }
 
-  @override
-  String toString() =>
-      'ResponsesRequest(model: $model, previousResponseId: $previousResponseId, store: $store)';
-}
-
-/// Output item in a Responses API response.
-class ResponseOutputItem {
-  final String id;
-  final String type;
-  final String role;
-  final dynamic content;
-  final Map<String, dynamic> extra;
-
-  const ResponseOutputItem({
-    required this.id,
-    required this.type,
-    required this.role,
-    this.content,
-    this.extra = const {},
-  });
-
-  factory ResponseOutputItem.fromJson(Map<String, dynamic> json) {
+  factory ResponsesRequest.fromJson(Map<String, dynamic> json) {
     final copy = Map<String, dynamic>.from(json);
-    return ResponseOutputItem(
-      id: copy.remove('id') as String? ?? '',
-      type: copy.remove('type') as String? ?? 'message',
-      role: copy.remove('role') as String? ?? 'assistant',
-      content: copy.remove('content'),
+    final model = copy.remove('model') as String? ?? '';
+    final input = copy.remove('input');
+    final instructions = copy.remove('instructions') as String?;
+    final previousResponseId =
+        copy.remove('previous_response_id') as String?;
+    final store = copy.remove('store') as bool?;
+    final rawTools = copy.remove('tools') as List<dynamic>?;
+    final tools = rawTools
+        ?.whereType<Map<String, dynamic>>()
+        .map((e) => Tool.fromJson(e))
+        .toList();
+
+    return ResponsesRequest(
+      model: model,
+      input: input,
+      instructions: instructions,
+      previousResponseId: previousResponseId,
+      store: store,
+      tools: tools,
       extra: copy,
     );
   }
+}
 
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'type': type,
-        'role': role,
-        if (content != null) 'content': content,
-        ...extra,
-      };
+/// Output item in a Responses API response.
+@freezed
+abstract class ResponseOutputItem with _$ResponseOutputItem {
+  const factory ResponseOutputItem({
+    required String id,
+    @Default('message') String type,
+    @Default('assistant') String role,
+    dynamic content,
+    @Default({}) Map<String, dynamic> extra,
+  }) = _ResponseOutputItem;
 
-  @override
-  String toString() => 'ResponseOutputItem(id: $id, type: $type, role: $role)';
+  factory ResponseOutputItem.fromJson(Map<String, dynamic> json) =>
+      _$ResponseOutputItemFromJson(json);
 }
 
 /// Response returned by `POST /v1/responses` (Codex compatibility).
-class ResponsesResponse {
-  final String id;
-  final String object;
-  final int created;
-  final String model;
-  final String status;
-  final List<ResponseOutputItem> output;
-  final String? outputText;
-  final Usage? usage;
-  final Map<String, dynamic> raw;
+@freezed
+abstract class ResponsesResponse with _$ResponsesResponse {
+  const factory ResponsesResponse({
+    required String id,
+    @Default('response') String object,
+    required int created,
+    required String model,
+    @Default('completed') String status,
+    required List<ResponseOutputItem> output,
+    @JsonKey(name: 'output_text') String? outputText,
+    Usage? usage,
+    @Default({}) Map<String, dynamic> raw,
+  }) = _ResponsesResponse;
 
-  const ResponsesResponse({
-    required this.id,
-    this.object = 'response',
-    required this.created,
-    required this.model,
-    required this.status,
-    required this.output,
-    this.outputText,
-    this.usage,
-    this.raw = const {},
-  });
-
-  factory ResponsesResponse.fromJson(Map<String, dynamic> json) {
-    final outputList = json['output'] as List<dynamic>? ?? [];
-    return ResponsesResponse(
-      id: json['id'] as String? ?? '',
-      object: json['object'] as String? ?? 'response',
-      created: (json['created'] as num?)?.toInt() ?? 0,
-      model: json['model'] as String? ?? '',
-      status: json['status'] as String? ?? 'completed',
-      output: outputList
-          .whereType<Map<String, dynamic>>()
-          .map((e) => ResponseOutputItem.fromJson(e))
-          .toList(),
-      outputText: json['output_text'] as String?,
-      usage: json['usage'] is Map<String, dynamic>
-          ? Usage.fromJson(json['usage'] as Map<String, dynamic>)
-          : null,
-      raw: json,
-    );
-  }
-
-  Map<String, dynamic> toJson() => raw;
-
-  @override
-  String toString() =>
-      'ResponsesResponse(id: $id, model: $model, status: $status, outputText: $outputText)';
+  factory ResponsesResponse.fromJson(Map<String, dynamic> json) =>
+      _$ResponsesResponseFromJson(json).copyWith(raw: json);
 }

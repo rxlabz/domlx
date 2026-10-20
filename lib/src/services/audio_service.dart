@@ -1,3 +1,4 @@
+import 'package:http/http.dart' as http;
 import '../client/http_client.dart';
 import '../models/audio.dart';
 
@@ -22,9 +23,13 @@ class AudioService {
 
     final json = await _client.postMultipart(
       '/v1/audio/transcriptions',
-      fileBytes: request.fileBytes,
-      filename: request.filename,
-      fileField: 'file',
+      files: [
+        http.MultipartFile.fromBytes(
+          'file',
+          request.fileBytes,
+          filename: request.filename,
+        ),
+      ],
       fields: fields,
     );
 

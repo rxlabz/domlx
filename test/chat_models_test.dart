@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:domlx/domlx.dart';
 import 'package:test/test.dart';
 
@@ -196,11 +197,16 @@ void main() {
           InputItem.user('Write a function in Dart to reverse a string.'),
         ],
         store: true,
+        extra: {'custom_flag': true},
       );
 
       final json = req.toJson();
       expect(json['instructions'], 'You are a programming assistant.');
       expect(json['store'], true);
+      expect(json['custom_flag'], true);
+      expect(json['input'], isA<List>());
+      final encoded = jsonEncode(json);
+      expect(encoded, contains('reverse a string'));
 
       final respJson = {
         'id': 'resp_001',

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:domlx/domlx.dart';
+import 'package:domlx/src/client/http_client.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
@@ -337,6 +338,271 @@ void main() {
               .having((e) => e.statusCode, 'statusCode', 507)
               .having((e) => e.isInsufficientMemory, 'isInsufficientMemory', isTrue)
               .having((e) => e.message, 'message', 'Model exceeds system memory'),
+        ),
+      );
+    });
+
+    test('POST /v1/audio/transcriptions sends multipart request with file', () async {
+      final mock = MockClient.streaming((request, bodyStream) async {
+        expect(request.method, 'POST');
+        expect(request.url.path, '/v1/audio/transcriptions');
+        expect(request, isA<http.MultipartRequest>());
+
+        final multipart = request as http.MultipartRequest;
+        expect(multipart.fields['model'], 'whisper-large-v3');
+        expect(multipart.files.length, 1);
+        expect(multipart.files.first.field, 'file');
+        expect(multipart.files.first.filename, 'speech.wav');
+
+        return http.StreamedResponse(
+          Stream.value(utf8.encode(jsonEncode({'text': 'Hello world'}))),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final client = OmlxClient(
+        baseUrl: 'http://localhost:8000',
+        client: mock,
+      );
+
+      final response = await client.audio.transcribe(
+        AudioTranscriptionRequest(
+          model: 'whisper-large-v3',
+          filename: 'speech.wav',
+          fileBytes: [1, 2, 3, 4],
+        ),
+      );
+
+      expect(response.text, 'Hello world');
+    });
+
+    test('postMultipart sends multiple files', () async {
+      final mock = MockClient.streaming((request, bodyStream) async {
+        expect(request.method, 'POST');
+        expect(request.url.path, '/upload');
+        expect(request, isA<http.MultipartRequest>());
+
+        final multipart = request as http.MultipartRequest;
+        expect(multipart.files.length, 2);
+        expect(multipart.files[0].field, 'file1');
+        expect(multipart.files[0].filename, 'doc1.txt');
+        expect(multipart.files[1].field, 'file2');
+        expect(multipart.files[1].filename, 'doc2.txt');
+
+        return http.StreamedResponse(
+          Stream.value(utf8.encode(jsonEncode({'success': true, 'count': 2}))),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final client = OmlxHttpClient(
+        baseUrl: Uri.parse('http://localhost:8000'),
+        client: mock,
+      );
+
+      final res = await client.postMultipart(
+        '/upload',
+        files: [
+          http.MultipartFile.fromString('file1', 'content 1', filename: 'doc1.txt'),
+          http.MultipartFile.fromString('file2', 'content 2', filename: 'doc2.txt'),
+        ],
+      );
+
+      expect(res['success'], isTrue);
+      expect(res['count'], 2);
+    });
+
+    test('OmlxHttpClient preserves base URL path prefixes and UTF-8 encoding', () async {
+      final mock = MockClient((request) async {
+        expect(request.url.toString(), 'http://localhost:8000/prefix/v1/models');
+        // Non-ASCII and emojis without charset=utf-8 in Content-Type
+        return http.Response.bytes(
+          utf8.encode(jsonEncode({'object': 'list', 'data': [], 'note': '日本語 🚀'})),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final client = OmlxHttpClient(
+        baseUrl: Uri.parse('http://localhost:8000/prefix'),
+        client: mock,
+      );
+
+      final res = await client.get('/v1/models');
+      expect(res['note'], '日本語 🚀');
+    });
+
+    test('ModelsService.status parses models list format', () async {
+      final mock = MockClient((request) async {
+        expect(request.method, 'GET');
+        expect(request.url.path, '/v1/models/status');
+
+        return http.Response(
+          jsonEncode({
+            'models': [
+              {
+                'model_id': 'model-1',
+                'loaded': true,
+                'engine_type': 'mlx',
+              },
+              {
+                'id': 'model-2',
+                'loaded': false,
+              }
+            ]
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+
+      final client = OmlxClient(
+        baseUrl: 'http://localhost:8000',
+        client: mock,
+      );
+
+      final statuses = await client.models.status();
+      expect(statuses.length, 2);
+      expect(statuses[0].modelId, 'model-1');
+      expect(statuses[0].isLoaded, isTrue);
+      expect(statuses[0].engineType, 'mlx');
+      expect(statuses[1].modelId, 'model-2');
+      expect(statuses[1].isLoaded, isFalse);
+    });
+
+    test('POST /v1/chat/completions (streaming) parses tool call deltas with index and null id', () async {
+      final mock = MockClient.streaming((request, bodyStream) async {
+        final sseEvents = [
+          'data: {"id":"chatcmpl-chunk-tool-1","object":"chat.completion.chunk","created":1710000000,"model":"test-model","choices":[{"index":0,"delta":{"role":"assistant","tool_calls":[{"index":0,"id":"call_abc","type":"function","function":{"name":"get_weather","arguments":""}}]},"finish_reason":null}]}\n\n',
+          'data: {"id":"chatcmpl-chunk-tool-2","object":"chat.completion.chunk","created":1710000000,"model":"test-model","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":"{\\"city\\": \\"Paris\\"}"}}]},"finish_reason":"tool_calls"}]}\n\n',
+          'data: [DONE]\n\n',
+        ];
+
+        return http.StreamedResponse(
+          Stream.fromIterable(sseEvents.map(utf8.encode)),
+          200,
+          headers: {'content-type': 'text/event-stream'},
+        );
+      });
+
+      final client = OmlxClient(
+        baseUrl: 'http://localhost:8000',
+        client: mock,
+      );
+
+      final chunks = await client.chat
+          .createStream(
+            ChatCompletionRequest(
+              model: 'test-model',
+              messages: [ChatMessage.user('What is the weather in Paris?')],
+            ),
+          )
+          .toList();
+
+      expect(chunks.length, 2);
+      expect(chunks[0].firstDelta?.toolCalls?.first.id, 'call_abc');
+      expect(chunks[0].firstDelta?.toolCalls?.first.index, 0);
+      expect(chunks[0].firstDelta?.toolCalls?.first.function.name, 'get_weather');
+
+      expect(chunks[1].firstDelta?.toolCalls?.first.id, isNull);
+      expect(chunks[1].firstDelta?.toolCalls?.first.index, 0);
+      expect(chunks[1].firstDelta?.toolCalls?.first.function.arguments, '{"city": "Paris"}');
+    });
+
+    test('ChatService streamReasoning and streamEvents stream reasoning and content', () async {
+      final mock = MockClient.streaming((request, bodyStream) async {
+        final sseEvents = [
+          'data: {"id":"c-1","object":"chat.completion.chunk","created":1710000000,"model":"test","choices":[{"index":0,"delta":{"role":"assistant","reasoning_content":"Let me calculate"},"finish_reason":null}]}\n\n',
+          'data: {"id":"c-2","object":"chat.completion.chunk","created":1710000000,"model":"test","choices":[{"index":0,"delta":{"reasoning_content":" 2+2=4."},"finish_reason":null}]}\n\n',
+          'data: {"id":"c-3","object":"chat.completion.chunk","created":1710000000,"model":"test","choices":[{"index":0,"delta":{"content":"The answer"},"finish_reason":null}]}\n\n',
+          'data: {"id":"c-4","object":"chat.completion.chunk","created":1710000000,"model":"test","choices":[{"index":0,"delta":{"content":" is 4."},"finish_reason":"stop"}]}\n\n',
+          'data: [DONE]\n\n',
+        ];
+
+        return http.StreamedResponse(
+          Stream.fromIterable(sseEvents.map(utf8.encode)),
+          200,
+          headers: {'content-type': 'text/event-stream'},
+        );
+      });
+
+      final client = OmlxClient(
+        baseUrl: 'http://localhost:8000',
+        client: mock,
+      );
+
+      final reasoningTokens = await client.chat
+          .streamReasoning(model: 'test', prompt: 'calculate 2+2')
+          .toList();
+      expect(reasoningTokens, ['Let me calculate', ' 2+2=4.']);
+
+      final events = await client.chat
+          .streamEvents(model: 'test', prompt: 'calculate 2+2')
+          .toList();
+      expect(events.length, 4);
+      expect(events[0], isA<ChatReasoningEvent>().having((e) => e.text, 'text', 'Let me calculate'));
+      expect(events[1], isA<ChatReasoningEvent>().having((e) => e.text, 'text', ' 2+2=4.'));
+      expect(events[2], isA<ChatContentEvent>().having((e) => e.text, 'text', 'The answer'));
+      expect(events[3], isA<ChatContentEvent>().having((e) => e.text, 'text', ' is 4.'));
+    });
+
+    test('ResponsesService createStream streams SSE events', () async {
+      final mock = MockClient.streaming((request, bodyStream) async {
+        expect(request.url.path, '/v1/responses');
+        final sseEvents = [
+          'data: {"id":"resp-1","status":"in_progress"}\n\n',
+          'data: {"id":"resp-1","status":"completed","output_text":"Hello"}\n\n',
+          'data: [DONE]\n\n',
+        ];
+
+        return http.StreamedResponse(
+          Stream.fromIterable(sseEvents.map(utf8.encode)),
+          200,
+          headers: {'content-type': 'text/event-stream'},
+        );
+      });
+
+      final client = OmlxClient(
+        baseUrl: 'http://localhost:8000',
+        client: mock,
+      );
+
+      final chunks = await client.createStreamResponse(
+        const ResponsesRequest(
+          model: 'qwen',
+          input: 'hello',
+        ),
+      ).toList();
+
+      expect(chunks.length, 2);
+      expect(chunks[0]['status'], 'in_progress');
+      expect(chunks[1]['output_text'], 'Hello');
+    });
+
+    test('postStream handles stream connection errors gracefully', () async {
+      final mock = MockClient.streaming((request, bodyStream) async {
+        return http.StreamedResponse(
+          Stream<List<int>>.error(Exception('Connection reset by peer')),
+          200,
+          headers: {'content-type': 'text/event-stream'},
+        );
+      });
+
+      final client = OmlxHttpClient(
+        baseUrl: Uri.parse('http://localhost:8000'),
+        client: mock,
+      );
+
+      expect(
+        () => client.postStream('/stream').toList(),
+        throwsA(
+          isA<OmlxNetworkException>().having(
+            (e) => e.message,
+            'message',
+            contains('Error reading stream data'),
+          ),
         ),
       );
     });

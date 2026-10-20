@@ -42,8 +42,10 @@ class OmlxHttpClient {
   }
 
   Uri _buildUri(String path, [Map<String, dynamic>? queryParameters]) {
-    final cleanPath = path.startsWith('/') ? path : '/$path';
-    final combined = baseUrl.resolve(cleanPath);
+    final cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    final basePath = baseUrl.path.endsWith('/') ? baseUrl.path : '${baseUrl.path}/';
+    final resolvedPath = baseUrl.path.isEmpty ? '/$cleanPath' : '$basePath$cleanPath';
+    final combined = baseUrl.replace(path: resolvedPath);
     if (queryParameters == null || queryParameters.isEmpty) {
       return combined;
     }
@@ -138,7 +140,8 @@ class OmlxHttpClient {
           .timeout(timeout);
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        _handleErrorResponse(response.statusCode, response.body, uri);
+        final errorBody = utf8.decode(response.bodyBytes, allowMalformed: true);
+        _handleErrorResponse(response.statusCode, errorBody, uri);
       }
       return response.bodyBytes;
     } on OmlxException {
@@ -153,9 +156,7 @@ class OmlxHttpClient {
   /// Sends a multipart form POST request (e.g. for audio STT transcription).
   Future<dynamic> postMultipart(
     String path, {
-    required List<int> fileBytes,
-    required String filename,
-    required String fileField,
+    required List<http.MultipartFile> files,
     Map<String, String>? fields,
     Map<String, String>? headers,
   }) async {
@@ -172,13 +173,7 @@ class OmlxHttpClient {
         request.fields.addAll(fields);
       }
 
-      request.files.add(
-        http.MultipartFile.fromBytes(
-          fileField,
-          fileBytes,
-          filename: filename,
-        ),
-      );
+      request.files.addAll(files);
 
       final streamedResponse = await _client.send(request).timeout(timeout);
       final response = await http.Response.fromStream(streamedResponse);
@@ -215,7 +210,14 @@ class OmlxHttpClient {
 
     http.StreamedResponse streamedResponse;
     try {
-      streamedResponse = await _client.send(request);
+      streamedResponse = await _client.send(request).timeout(timeout);
+    } on OmlxException {
+      rethrow;
+    } on TimeoutException catch (e) {
+      throw OmlxNetworkException(
+        'Stream request connection timed out after $timeout for $uri',
+        cause: e,
+      );
     } catch (e) {
       throw OmlxNetworkException('Failed to send stream request to $uri', cause: e);
     }
@@ -226,6 +228,13 @@ class OmlxHttpClient {
     }
 
     final lines = streamedResponse.stream
+        .handleError((Object error, StackTrace stackTrace) {
+          if (error is OmlxException) throw error;
+          throw OmlxNetworkException(
+            'Error reading stream data from $uri',
+            cause: error,
+          );
+        })
         .transform(utf8.decoder)
         .transform(const LineSplitter());
 
@@ -258,19 +267,22 @@ class OmlxHttpClient {
 
   dynamic _handleResponse(http.Response response, Uri uri) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      if (response.body.isEmpty) return null;
+      if (response.bodyBytes.isEmpty) return null;
+      final bodyString = utf8.decode(response.bodyBytes, allowMalformed: true);
+      if (bodyString.isEmpty) return null;
       try {
-        return jsonDecode(response.body);
+        return jsonDecode(bodyString);
       } catch (e) {
         throw OmlxParsingException(
           'Failed to decode JSON response from $uri',
           cause: e,
-          rawData: response.body,
+          rawData: bodyString,
         );
       }
     }
 
-    _handleErrorResponse(response.statusCode, response.body, uri);
+    final errorBody = utf8.decode(response.bodyBytes, allowMalformed: true);
+    _handleErrorResponse(response.statusCode, errorBody, uri);
   }
 
   Never _handleErrorResponse(int statusCode, String body, Uri uri) {

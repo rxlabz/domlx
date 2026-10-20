@@ -1,98 +1,67 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'audio.freezed.dart';
+part 'audio.g.dart';
+
 /// Request for `POST /v1/audio/transcriptions` (Speech-to-Text).
-class AudioTranscriptionRequest {
-  /// The audio file bytes to transcribe.
-  final List<int> fileBytes;
+@freezed
+abstract class AudioTranscriptionRequest with _$AudioTranscriptionRequest {
+  const factory AudioTranscriptionRequest({
+    /// The audio file bytes to transcribe.
+    required List<int> fileBytes,
 
-  /// The filename (e.g. 'recording.wav', 'speech.mp3').
-  final String filename;
+    /// The filename (e.g. 'recording.wav', 'speech.mp3').
+    required String filename,
 
-  /// Model ID (e.g. 'whisper-large-v3', 'mlx-community/whisper-tiny').
-  final String model;
+    /// Model ID (e.g. 'whisper-large-v3', 'mlx-community/whisper-tiny').
+    required String model,
 
-  /// Optional language code in ISO-639-1 format (e.g. 'en', 'es', 'fr').
-  final String? language;
+    /// Optional language code in ISO-639-1 format (e.g. 'en', 'es', 'fr').
+    String? language,
 
-  /// Optional text prompt to guide the model's style or vocabulary.
-  final String? prompt;
+    /// Optional text prompt to guide the model's style or vocabulary.
+    String? prompt,
 
-  /// Desired response format: "json" (default), "text", "verbose_json", "srt", "vtt".
-  final String? responseFormat;
+    /// Desired response format: "json" (default), "text", "verbose_json", "srt", "vtt".
+    @JsonKey(name: 'response_format') String? responseFormat,
 
-  /// Sampling temperature between 0 and 1.
-  final double? temperature;
-
-  const AudioTranscriptionRequest({
-    required this.fileBytes,
-    required this.filename,
-    required this.model,
-    this.language,
-    this.prompt,
-    this.responseFormat,
-    this.temperature,
-  });
-
-  @override
-  String toString() =>
-      'AudioTranscriptionRequest(model: $model, file: $filename, bytes: ${fileBytes.length})';
+    /// Sampling temperature between 0 and 1.
+    double? temperature,
+  }) = _AudioTranscriptionRequest;
 }
 
 /// Response returned by `POST /v1/audio/transcriptions`.
-class AudioTranscriptionResponse {
-  final String text;
-  final Map<String, dynamic> raw;
+@freezed
+abstract class AudioTranscriptionResponse with _$AudioTranscriptionResponse {
+  const factory AudioTranscriptionResponse({
+    @Default('') String text,
+    @Default({}) Map<String, dynamic> raw,
+  }) = _AudioTranscriptionResponse;
 
-  const AudioTranscriptionResponse({
-    required this.text,
-    this.raw = const {},
-  });
-
-  factory AudioTranscriptionResponse.fromJson(Map<String, dynamic> json) {
-    return AudioTranscriptionResponse(
-      text: json['text'] as String? ?? '',
-      raw: json,
-    );
-  }
-
-  Map<String, dynamic> toJson() => raw;
-
-  @override
-  String toString() => 'AudioTranscriptionResponse(text: $text)';
+  factory AudioTranscriptionResponse.fromJson(Map<String, dynamic> json) =>
+      _$AudioTranscriptionResponseFromJson(json).copyWith(raw: json);
 }
 
 /// Request for `POST /v1/audio/speech` (Text-to-Speech).
-class AudioSpeechRequest {
-  /// Model ID (e.g., 'tts-1', 'mlx-community/Kokoro-82M').
-  final String model;
+@freezed
+abstract class AudioSpeechRequest with _$AudioSpeechRequest {
+  const factory AudioSpeechRequest({
+    /// Model ID (e.g., 'tts-1', 'mlx-community/Kokoro-82M').
+    required String model,
 
-  /// The text to synthesize into speech.
-  final String input;
+    /// The text to synthesize into speech.
+    required String input,
 
-  /// Voice to use (e.g. 'alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer').
-  final String voice;
+    /// Voice to use (e.g. 'alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer').
+    required String voice,
 
-  /// Audio format: "mp3" (default), "opus", "aac", "flac", "wav", or "pcm".
-  final String? responseFormat;
+    /// Audio format: "mp3" (default), "opus", "aac", "flac", "wav", or "pcm".
+    @JsonKey(name: 'response_format') String? responseFormat,
 
-  /// Speech speed between 0.25 and 4.0 (default 1.0).
-  final double? speed;
+    /// Speech speed between 0.25 and 4.0 (default 1.0).
+    double? speed,
+  }) = _AudioSpeechRequest;
 
-  const AudioSpeechRequest({
-    required this.model,
-    required this.input,
-    required this.voice,
-    this.responseFormat,
-    this.speed,
-  });
-
-  Map<String, dynamic> toJson() => {
-        'model': model,
-        'input': input,
-        'voice': voice,
-        if (responseFormat != null) 'response_format': responseFormat,
-        if (speed != null) 'speed': speed,
-      };
-
-  @override
-  String toString() =>
-      'AudioSpeechRequest(model: $model, voice: $voice, input: ${input.length > 30 ? "${input.substring(0, 30)}..." : input})';
+  factory AudioSpeechRequest.fromJson(Map<String, dynamic> json) =>
+      _$AudioSpeechRequestFromJson(json);
 }

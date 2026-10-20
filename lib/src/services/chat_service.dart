@@ -78,4 +78,68 @@ class ChatService {
       }
     }
   }
+
+  /// Convenience method to stream reasoning tokens directly from thinking models.
+  Stream<String> streamReasoning({
+    required String model,
+    required String prompt,
+    String? systemPrompt,
+    double? temperature,
+    int? maxTokens,
+  }) async* {
+    final messages = <ChatMessage>[
+      if (systemPrompt != null) ChatMessage.system(systemPrompt),
+      ChatMessage.user(prompt),
+    ];
+
+    final chunkStream = createStream(
+      ChatCompletionRequest(
+        model: model,
+        messages: messages,
+        temperature: temperature,
+        maxTokens: maxTokens,
+      ),
+    );
+
+    await for (final chunk in chunkStream) {
+      final reasoning = chunk.firstReasoningContent;
+      if (reasoning != null && reasoning.isNotEmpty) {
+        yield reasoning;
+      }
+    }
+  }
+
+  /// Convenience method to stream both reasoning thoughts and content as structured events.
+  Stream<ChatStreamEvent> streamEvents({
+    required String model,
+    required String prompt,
+    String? systemPrompt,
+    double? temperature,
+    int? maxTokens,
+  }) async* {
+    final messages = <ChatMessage>[
+      if (systemPrompt != null) ChatMessage.system(systemPrompt),
+      ChatMessage.user(prompt),
+    ];
+
+    final chunkStream = createStream(
+      ChatCompletionRequest(
+        model: model,
+        messages: messages,
+        temperature: temperature,
+        maxTokens: maxTokens,
+      ),
+    );
+
+    await for (final chunk in chunkStream) {
+      final reasoning = chunk.firstReasoningContent;
+      if (reasoning != null && reasoning.isNotEmpty) {
+        yield ChatReasoningEvent(reasoning);
+      }
+      final content = chunk.firstContent;
+      if (content != null && content.isNotEmpty) {
+        yield ChatContentEvent(content);
+      }
+    }
+  }
 }

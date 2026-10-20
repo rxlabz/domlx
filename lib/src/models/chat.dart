@@ -1,4 +1,54 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'common.dart';
+
+part 'chat.freezed.dart';
+part 'chat.g.dart';
+
+/// A streaming event emitted during chat completions.
+sealed class ChatStreamEvent {
+  const ChatStreamEvent();
+}
+
+/// A streaming token chunk representing model reasoning/thinking thoughts.
+class ChatReasoningEvent extends ChatStreamEvent {
+  final String text;
+  const ChatReasoningEvent(this.text);
+
+  @override
+  String toString() => 'ChatReasoningEvent($text)';
+}
+
+/// A streaming token chunk representing output content.
+class ChatContentEvent extends ChatStreamEvent {
+  final String text;
+  const ChatContentEvent(this.text);
+
+  @override
+  String toString() => 'ChatContentEvent($text)';
+}
+
+/// Message role in chat conversations.
+enum ChatRole {
+  system('system'),
+  user('user'),
+  assistant('assistant'),
+  tool('tool'),
+  developer('developer');
+
+  final String value;
+  const ChatRole(this.value);
+
+  static ChatRole fromString(String role) {
+    return switch (role.toLowerCase()) {
+      'system' => ChatRole.system,
+      'user' => ChatRole.user,
+      'assistant' => ChatRole.assistant,
+      'tool' => ChatRole.tool,
+      'developer' => ChatRole.developer,
+      _ => ChatRole.user,
+    };
+  }
+}
 
 /// Represents a part of a multi-modal message content (text or image).
 sealed class ContentPart {
@@ -16,43 +66,43 @@ sealed class ContentPart {
     return TextContentPart.fromJson(json);
   }
 
-  factory ContentPart.text(String text) = TextContentPart;
-  factory ContentPart.imageUrl(String url, {String? detail}) = ImageContentPart;
+  factory ContentPart.text(String text) => TextContentPart(text: text);
+  factory ContentPart.imageUrl(String url, {String? detail}) =>
+      ImageContentPart(url: url, detail: detail);
 }
 
-class TextContentPart extends ContentPart {
-  final String text;
+@freezed
+abstract class TextContentPart extends ContentPart with _$TextContentPart {
+  const TextContentPart._() : super('text');
 
-  const TextContentPart(this.text) : super('text');
+  const factory TextContentPart({
+    required String text,
+    @Default('text') String type,
+  }) = _TextContentPart;
 
   factory TextContentPart.fromJson(Map<String, dynamic> json) =>
-      TextContentPart(json['text'] as String? ?? '');
-
-  @override
-  Map<String, dynamic> toJson() => {
-        'type': type,
-        'text': text,
-      };
-
-  @override
-  String toString() => 'TextContentPart(text: $text)';
+      _$TextContentPartFromJson(json);
 }
 
-class ImageContentPart extends ContentPart {
-  final String url;
-  final String? detail;
+@freezed
+abstract class ImageContentPart extends ContentPart with _$ImageContentPart {
+  const ImageContentPart._() : super('image_url');
 
-  const ImageContentPart(this.url, {this.detail}) : super('image_url');
+  const factory ImageContentPart({
+    required String url,
+    String? detail,
+    @Default('image_url') String type,
+  }) = _ImageContentPart;
 
   factory ImageContentPart.fromJson(Map<String, dynamic> json) {
     final img = json['image_url'];
     if (img is Map<String, dynamic>) {
       return ImageContentPart(
-        img['url'] as String? ?? '',
+        url: img['url'] as String? ?? '',
         detail: img['detail'] as String?,
       );
     }
-    return ImageContentPart(img as String? ?? '');
+    return ImageContentPart(url: img as String? ?? '');
   }
 
   @override
@@ -63,52 +113,28 @@ class ImageContentPart extends ContentPart {
           if (detail != null) 'detail': detail,
         },
       };
-
-  @override
-  String toString() => 'ImageContentPart(url: $url, detail: $detail)';
 }
 
 /// Function definition in a tool specification.
-class FunctionDefinition {
-  final String name;
-  final String? description;
-  final Map<String, dynamic>? parameters;
+@freezed
+abstract class FunctionDefinition with _$FunctionDefinition {
+  const factory FunctionDefinition({
+    required String name,
+    String? description,
+    Map<String, dynamic>? parameters,
+  }) = _FunctionDefinition;
 
-  const FunctionDefinition({
-    required this.name,
-    this.description,
-    this.parameters,
-  });
-
-  factory FunctionDefinition.fromJson(Map<String, dynamic> json) {
-    return FunctionDefinition(
-      name: json['name'] as String? ?? '',
-      description: json['description'] as String?,
-      parameters: json['parameters'] is Map<String, dynamic>
-          ? json['parameters'] as Map<String, dynamic>
-          : null,
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'name': name,
-        if (description != null) 'description': description,
-        if (parameters != null) 'parameters': parameters,
-      };
-
-  @override
-  String toString() => 'FunctionDefinition(name: $name)';
+  factory FunctionDefinition.fromJson(Map<String, dynamic> json) =>
+      _$FunctionDefinitionFromJson(json);
 }
 
 /// Tool available for function calling.
-class Tool {
-  final String type;
-  final FunctionDefinition function;
-
-  const Tool({
-    this.type = 'function',
-    required this.function,
-  });
+@freezed
+abstract class Tool with _$Tool {
+  const factory Tool({
+    @Default('function') String type,
+    required FunctionDefinition function,
+  }) = _Tool;
 
   factory Tool.function({
     required String name,
@@ -123,108 +149,62 @@ class Tool {
         ),
       );
 
-  factory Tool.fromJson(Map<String, dynamic> json) {
-    return Tool(
-      type: json['type'] as String? ?? 'function',
-      function: FunctionDefinition.fromJson(
-          json['function'] as Map<String, dynamic>? ?? {}),
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'type': type,
-        'function': function.toJson(),
-      };
-
-  @override
-  String toString() => 'Tool(function: ${function.name})';
+  factory Tool.fromJson(Map<String, dynamic> json) => _$ToolFromJson(json);
 }
 
 /// Specific function call inside a tool call.
-class FunctionCall {
-  final String name;
-  final String arguments;
+@freezed
+abstract class FunctionCall with _$FunctionCall {
+  const factory FunctionCall({
+    @Default('') String name,
+    @Default('') String arguments,
+  }) = _FunctionCall;
 
-  const FunctionCall({
-    required this.name,
-    required this.arguments,
-  });
-
-  factory FunctionCall.fromJson(Map<String, dynamic> json) {
-    return FunctionCall(
-      name: json['name'] as String? ?? '',
-      arguments: json['arguments'] as String? ?? '',
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'name': name,
-        'arguments': arguments,
-      };
-
-  @override
-  String toString() => 'FunctionCall(name: $name, arguments: $arguments)';
+  factory FunctionCall.fromJson(Map<String, dynamic> json) =>
+      _$FunctionCallFromJson(json);
 }
 
 /// Tool call generated by an assistant message.
-class ToolCall {
-  final String id;
-  final String type;
-  final FunctionCall function;
+@freezed
+abstract class ToolCall with _$ToolCall {
+  const factory ToolCall({
+    String? id,
+    int? index,
+    @Default('function') String type,
+    required FunctionCall function,
+  }) = _ToolCall;
 
-  const ToolCall({
-    required this.id,
-    this.type = 'function',
-    required this.function,
-  });
-
-  factory ToolCall.fromJson(Map<String, dynamic> json) {
-    return ToolCall(
-      id: json['id'] as String? ?? '',
-      type: json['type'] as String? ?? 'function',
-      function: FunctionCall.fromJson(
-          json['function'] as Map<String, dynamic>? ?? {}),
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'type': type,
-        'function': function.toJson(),
-      };
-
-  @override
-  String toString() => 'ToolCall(id: $id, function: $function)';
+  factory ToolCall.fromJson(Map<String, dynamic> json) =>
+      _$ToolCallFromJson(json);
 }
 
 /// A single message in the chat history.
-class ChatMessage {
-  /// Message role: "system", "user", "assistant", "tool", or "developer".
-  final String role;
+@freezed
+abstract class ChatMessage with _$ChatMessage {
+  const ChatMessage._();
 
-  /// String content or multi-modal list of content parts.
-  final dynamic content;
+  const factory ChatMessage({
+    /// Message role: "system", "user", "assistant", "tool", or "developer".
+    required String role,
 
-  /// Reasoning / thinking content extracted from `<think>` blocks (oMLX reasoning models).
-  final String? reasoningContent;
+    /// String content or multi-modal list of content parts.
+    dynamic content,
 
-  /// Tool calls generated by the model (assistant role).
-  final List<ToolCall>? toolCalls;
+    /// Reasoning / thinking content extracted from `<think>` blocks (oMLX reasoning models).
+    @JsonKey(name: 'reasoning_content') String? reasoningContent,
 
-  /// Tool call ID matching the corresponding tool call (tool role).
-  final String? toolCallId;
+    /// Tool calls generated by the model (assistant role).
+    @JsonKey(name: 'tool_calls') List<ToolCall>? toolCalls,
 
-  /// Whether to continue from this message instead of starting a new turn.
-  final bool? partial;
+    /// Tool call ID matching the corresponding tool call (tool role).
+    @JsonKey(name: 'tool_call_id') String? toolCallId,
 
-  const ChatMessage({
-    required this.role,
-    this.content,
-    this.reasoningContent,
-    this.toolCalls,
-    this.toolCallId,
-    this.partial,
-  });
+    /// Whether to continue from this message instead of starting a new turn.
+    bool? partial,
+  }) = _ChatMessage;
+
+  /// Strongly-typed role enum helper.
+  ChatRole get chatRole => ChatRole.fromString(role);
 
   /// Convenient helper to get content as a plain string.
   String get textContent {
@@ -325,24 +305,18 @@ class ChatMessage {
       'partial': ?partial,
     };
   }
-
-  @override
-  String toString() =>
-      'ChatMessage(role: $role, content: ${textContent.length > 50 ? "${textContent.substring(0, 50)}..." : textContent})';
 }
 
 /// Configuration for structured output (JSON Schema).
-class ResponseFormat {
-  /// Either "text", "json_object", or "json_schema".
-  final String type;
+@freezed
+abstract class ResponseFormat with _$ResponseFormat {
+  const factory ResponseFormat({
+    /// Either "text", "json_object", or "json_schema".
+    required String type,
 
-  /// Optional JSON schema configuration when type is "json_schema".
-  final Map<String, dynamic>? jsonSchema;
-
-  const ResponseFormat({
-    required this.type,
-    this.jsonSchema,
-  });
+    /// Optional JSON schema configuration when type is "json_schema".
+    @JsonKey(name: 'json_schema') Map<String, dynamic>? jsonSchema,
+  }) = _ResponseFormat;
 
   static const text = ResponseFormat(type: 'text');
   static const jsonObject = ResponseFormat(type: 'json_object');
@@ -363,117 +337,60 @@ class ResponseFormat {
         },
       );
 
-  factory ResponseFormat.fromJson(Map<String, dynamic> json) {
-    return ResponseFormat(
-      type: json['type'] as String? ?? 'text',
-      jsonSchema: json['json_schema'] as Map<String, dynamic>?,
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'type': type,
-        if (jsonSchema != null) 'json_schema': jsonSchema,
-      };
-
-  @override
-  String toString() => 'ResponseFormat(type: $type)';
+  factory ResponseFormat.fromJson(Map<String, dynamic> json) =>
+      _$ResponseFormatFromJson(json);
 }
 
 /// Request payload for `POST /v1/chat/completions`.
-class ChatCompletionRequest {
-  /// Model ID (e.g., 'mlx-community/Qwen2.5-7B-Instruct-4bit').
-  final String model;
+@freezed
+abstract class ChatCompletionRequest with _$ChatCompletionRequest {
+  const ChatCompletionRequest._();
 
-  /// List of messages comprising the conversation.
-  final List<ChatMessage> messages;
+  const factory ChatCompletionRequest({
+    /// Model ID (e.g., 'mlx-community/Qwen2.5-7B-Instruct-4bit').
+    required String model,
 
-  /// Sampling temperature (default 1.0).
-  final double? temperature;
+    /// List of messages comprising the conversation.
+    required List<ChatMessage> messages,
 
-  /// Nucleus sampling probability threshold.
-  final double? topP;
-
-  /// Top-K sampling cutoff.
-  final int? topK;
-
-  /// Repetition penalty factor.
-  final double? repetitionPenalty;
-
-  /// Maximum tokens to generate.
-  final int? maxTokens;
-
-  /// Whether to stream partial message deltas via SSE.
-  final bool? stream;
-
-  /// List of tools available to the model.
-  final List<Tool>? tools;
-
-  /// Control which tool is called ("auto", "none", "required", or specific function).
-  final dynamic toolChoice;
-
-  /// Structured output configuration.
-  final ResponseFormat? responseFormat;
-
-  /// Stop sequences.
-  final dynamic stop;
-
-  /// User identifier for tracking.
-  final String? user;
-
-  /// Additional oMLX or custom vendor parameters.
-  final Map<String, dynamic> extra;
-
-  const ChatCompletionRequest({
-    required this.model,
-    required this.messages,
-    this.temperature,
-    this.topP,
-    this.topK,
-    this.repetitionPenalty,
-    this.maxTokens,
-    this.stream,
-    this.tools,
-    this.toolChoice,
-    this.responseFormat,
-    this.stop,
-    this.user,
-    this.extra = const {},
-  });
-
-  ChatCompletionRequest copyWith({
-    String? model,
-    List<ChatMessage>? messages,
+    /// Sampling temperature (default 1.0).
     double? temperature,
-    double? topP,
-    int? topK,
-    double? repetitionPenalty,
-    int? maxTokens,
-    bool? stream,
-    List<Tool>? tools,
-    dynamic toolChoice,
-    ResponseFormat? responseFormat,
-    dynamic stop,
-    String? user,
-    Map<String, dynamic>? extra,
-  }) {
-    return ChatCompletionRequest(
-      model: model ?? this.model,
-      messages: messages ?? this.messages,
-      temperature: temperature ?? this.temperature,
-      topP: topP ?? this.topP,
-      topK: topK ?? this.topK,
-      repetitionPenalty: repetitionPenalty ?? this.repetitionPenalty,
-      maxTokens: maxTokens ?? this.maxTokens,
-      stream: stream ?? this.stream,
-      tools: tools ?? this.tools,
-      toolChoice: toolChoice ?? this.toolChoice,
-      responseFormat: responseFormat ?? this.responseFormat,
-      stop: stop ?? this.stop,
-      user: user ?? this.user,
-      extra: extra ?? this.extra,
-    );
-  }
 
+    /// Nucleus sampling probability threshold.
+    @JsonKey(name: 'top_p') double? topP,
+
+    /// Top-K sampling cutoff.
+    @JsonKey(name: 'top_k') int? topK,
+
+    /// Repetition penalty factor.
+    @JsonKey(name: 'repetition_penalty') double? repetitionPenalty,
+
+    /// Maximum tokens to generate.
+    @JsonKey(name: 'max_tokens') int? maxTokens,
+
+    /// Whether to stream partial message deltas via SSE.
+    bool? stream,
+
+    /// List of tools available to the model.
+    List<Tool>? tools,
+
+    /// Control which tool is called ("auto", "none", "required", or specific function).
+    @JsonKey(name: 'tool_choice') dynamic toolChoice,
+
+    /// Structured output configuration.
+    @JsonKey(name: 'response_format') ResponseFormat? responseFormat,
+
+    /// Stop sequences.
+    dynamic stop,
+
+    /// User identifier for tracking.
+    String? user,
+
+    /// Additional oMLX or custom vendor parameters.
+    @Default({}) Map<String, dynamic> extra,
+  }) = _ChatCompletionRequest;
+
+  @override
   Map<String, dynamic> toJson() => {
         'model': model,
         'messages': messages.map((m) => m.toJson()).toList(),
@@ -492,60 +409,36 @@ class ChatCompletionRequest {
         ...extra,
       };
 
-  @override
-  String toString() =>
-      'ChatCompletionRequest(model: $model, messages: ${messages.length}, stream: $stream)';
+  factory ChatCompletionRequest.fromJson(Map<String, dynamic> json) =>
+      _$ChatCompletionRequestFromJson(json);
 }
 
 /// A choice in a non-streaming chat completion.
-class ChatChoice {
-  final int index;
-  final ChatMessage message;
-  final String? finishReason;
+@freezed
+abstract class ChatChoice with _$ChatChoice {
+  const factory ChatChoice({
+    @Default(0) int index,
+    required ChatMessage message,
+    @JsonKey(name: 'finish_reason') String? finishReason,
+  }) = _ChatChoice;
 
-  const ChatChoice({
-    required this.index,
-    required this.message,
-    this.finishReason,
-  });
-
-  factory ChatChoice.fromJson(Map<String, dynamic> json) {
-    return ChatChoice(
-      index: (json['index'] as num?)?.toInt() ?? 0,
-      message: ChatMessage.fromJson(
-          json['message'] as Map<String, dynamic>? ?? {}),
-      finishReason: json['finish_reason'] as String?,
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'index': index,
-        'message': message.toJson(),
-        if (finishReason != null) 'finish_reason': finishReason,
-      };
-
-  @override
-  String toString() =>
-      'ChatChoice(index: $index, finishReason: $finishReason, message: $message)';
+  factory ChatChoice.fromJson(Map<String, dynamic> json) =>
+      _$ChatChoiceFromJson(json);
 }
 
 /// Full response from non-streaming `POST /v1/chat/completions`.
-class ChatCompletion {
-  final String id;
-  final String object;
-  final int created;
-  final String model;
-  final List<ChatChoice> choices;
-  final Usage? usage;
+@freezed
+abstract class ChatCompletion with _$ChatCompletion {
+  const ChatCompletion._();
 
-  const ChatCompletion({
-    required this.id,
-    this.object = 'chat.completion',
-    required this.created,
-    required this.model,
-    required this.choices,
-    this.usage,
-  });
+  const factory ChatCompletion({
+    required String id,
+    @Default('chat.completion') String object,
+    required int created,
+    required String model,
+    required List<ChatChoice> choices,
+    Usage? usage,
+  }) = _ChatCompletion;
 
   /// Convenient getter for primary message.
   ChatMessage? get firstMessage =>
@@ -557,125 +450,50 @@ class ChatCompletion {
   /// Convenient getter for reasoning content.
   String? get firstReasoningContent => firstMessage?.reasoningContent;
 
-  factory ChatCompletion.fromJson(Map<String, dynamic> json) {
-    final choicesList = json['choices'] as List<dynamic>? ?? [];
-    return ChatCompletion(
-      id: json['id'] as String? ?? '',
-      object: json['object'] as String? ?? 'chat.completion',
-      created: (json['created'] as num?)?.toInt() ?? 0,
-      model: json['model'] as String? ?? '',
-      choices: choicesList
-          .whereType<Map<String, dynamic>>()
-          .map((e) => ChatChoice.fromJson(e))
-          .toList(),
-      usage: json['usage'] is Map<String, dynamic>
-          ? Usage.fromJson(json['usage'] as Map<String, dynamic>)
-          : null,
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'object': object,
-        'created': created,
-        'model': model,
-        'choices': choices.map((c) => c.toJson()).toList(),
-        if (usage != null) 'usage': usage!.toJson(),
-      };
-
-  @override
-  String toString() =>
-      'ChatCompletion(id: $id, model: $model, choices: ${choices.length}, usage: $usage)';
+  factory ChatCompletion.fromJson(Map<String, dynamic> json) =>
+      _$ChatCompletionFromJson(json);
 }
 
 /// Partial delta received in a streaming chunk.
-class ChatDelta {
-  final String? role;
-  final String? content;
-  final String? reasoningContent;
-  final List<ToolCall>? toolCalls;
+@freezed
+abstract class ChatDelta with _$ChatDelta {
+  const factory ChatDelta({
+    String? role,
+    String? content,
+    @JsonKey(name: 'reasoning_content') String? reasoningContent,
+    @JsonKey(name: 'tool_calls') List<ToolCall>? toolCalls,
+  }) = _ChatDelta;
 
-  const ChatDelta({
-    this.role,
-    this.content,
-    this.reasoningContent,
-    this.toolCalls,
-  });
-
-  factory ChatDelta.fromJson(Map<String, dynamic> json) {
-    final rawTools = json['tool_calls'] as List<dynamic>?;
-    return ChatDelta(
-      role: json['role'] as String?,
-      content: json['content'] as String?,
-      reasoningContent: json['reasoning_content'] as String?,
-      toolCalls: rawTools
-          ?.whereType<Map<String, dynamic>>()
-          .map((e) => ToolCall.fromJson(e))
-          .toList(),
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        if (role != null) 'role': role,
-        if (content != null) 'content': content,
-        if (reasoningContent != null) 'reasoning_content': reasoningContent,
-        if (toolCalls != null)
-          'tool_calls': toolCalls!.map((e) => e.toJson()).toList(),
-      };
-
-  @override
-  String toString() =>
-      'ChatDelta(content: $content, reasoning: $reasoningContent)';
+  factory ChatDelta.fromJson(Map<String, dynamic> json) =>
+      _$ChatDeltaFromJson(json);
 }
 
 /// A choice in a streaming chunk.
-class ChatChunkChoice {
-  final int index;
-  final ChatDelta delta;
-  final String? finishReason;
+@freezed
+abstract class ChatChunkChoice with _$ChatChunkChoice {
+  const factory ChatChunkChoice({
+    @Default(0) int index,
+    required ChatDelta delta,
+    @JsonKey(name: 'finish_reason') String? finishReason,
+  }) = _ChatChunkChoice;
 
-  const ChatChunkChoice({
-    required this.index,
-    required this.delta,
-    this.finishReason,
-  });
-
-  factory ChatChunkChoice.fromJson(Map<String, dynamic> json) {
-    return ChatChunkChoice(
-      index: (json['index'] as num?)?.toInt() ?? 0,
-      delta:
-          ChatDelta.fromJson(json['delta'] as Map<String, dynamic>? ?? {}),
-      finishReason: json['finish_reason'] as String?,
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'index': index,
-        'delta': delta.toJson(),
-        if (finishReason != null) 'finish_reason': finishReason,
-      };
-
-  @override
-  String toString() => 'ChatChunkChoice(index: $index, delta: $delta)';
+  factory ChatChunkChoice.fromJson(Map<String, dynamic> json) =>
+      _$ChatChunkChoiceFromJson(json);
 }
 
 /// Streaming chunk from `POST /v1/chat/completions` (SSE).
-class ChatCompletionChunk {
-  final String id;
-  final String object;
-  final int created;
-  final String model;
-  final List<ChatChunkChoice> choices;
-  final Usage? usage;
+@freezed
+abstract class ChatCompletionChunk with _$ChatCompletionChunk {
+  const ChatCompletionChunk._();
 
-  const ChatCompletionChunk({
-    required this.id,
-    this.object = 'chat.completion.chunk',
-    required this.created,
-    required this.model,
-    required this.choices,
-    this.usage,
-  });
+  const factory ChatCompletionChunk({
+    required String id,
+    @Default('chat.completion.chunk') String object,
+    required int created,
+    required String model,
+    required List<ChatChunkChoice> choices,
+    Usage? usage,
+  }) = _ChatCompletionChunk;
 
   ChatDelta? get firstDelta =>
       choices.isNotEmpty ? choices.first.delta : null;
@@ -684,33 +502,6 @@ class ChatCompletionChunk {
 
   String? get firstReasoningContent => firstDelta?.reasoningContent;
 
-  factory ChatCompletionChunk.fromJson(Map<String, dynamic> json) {
-    final choicesList = json['choices'] as List<dynamic>? ?? [];
-    return ChatCompletionChunk(
-      id: json['id'] as String? ?? '',
-      object: json['object'] as String? ?? 'chat.completion.chunk',
-      created: (json['created'] as num?)?.toInt() ?? 0,
-      model: json['model'] as String? ?? '',
-      choices: choicesList
-          .whereType<Map<String, dynamic>>()
-          .map((e) => ChatChunkChoice.fromJson(e))
-          .toList(),
-      usage: json['usage'] is Map<String, dynamic>
-          ? Usage.fromJson(json['usage'] as Map<String, dynamic>)
-          : null,
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'object': object,
-        'created': created,
-        'model': model,
-        'choices': choices.map((c) => c.toJson()).toList(),
-        if (usage != null) 'usage': usage!.toJson(),
-      };
-
-  @override
-  String toString() =>
-      'ChatCompletionChunk(id: $id, model: $model, delta: $firstDelta)';
+  factory ChatCompletionChunk.fromJson(Map<String, dynamic> json) =>
+      _$ChatCompletionChunkFromJson(json);
 }

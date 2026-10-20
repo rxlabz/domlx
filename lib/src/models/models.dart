@@ -1,92 +1,49 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'models.freezed.dart';
+part 'models.g.dart';
+
 /// Metadata for a single model discovered by oMLX.
-class ModelInfo {
-  final String id;
-  final String object;
-  final int? created;
-  final String? ownedBy;
-  final Map<String, dynamic> extra;
+@freezed
+abstract class ModelInfo with _$ModelInfo {
+  const factory ModelInfo({
+    required String id,
+    @Default('model') String object,
+    int? created,
+    @JsonKey(name: 'owned_by') String? ownedBy,
+    @Default({}) Map<String, dynamic> extra,
+  }) = _ModelInfo;
 
-  const ModelInfo({
-    required this.id,
-    this.object = 'model',
-    this.created,
-    this.ownedBy,
-    this.extra = const {},
-  });
-
-  factory ModelInfo.fromJson(Map<String, dynamic> json) {
-    final copy = Map<String, dynamic>.from(json);
-    final id = copy.remove('id') as String? ?? '';
-    final object = copy.remove('object') as String? ?? 'model';
-    final created = (copy.remove('created') as num?)?.toInt();
-    final ownedBy = copy.remove('owned_by') as String?;
-
-    return ModelInfo(
-      id: id,
-      object: object,
-      created: created,
-      ownedBy: ownedBy,
-      extra: copy,
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'object': object,
-        if (created != null) 'created': created,
-        if (ownedBy != null) 'owned_by': ownedBy,
-        ...extra,
-      };
-
-  @override
-  String toString() => 'ModelInfo(id: $id, ownedBy: $ownedBy)';
+  factory ModelInfo.fromJson(Map<String, dynamic> json) =>
+      _$ModelInfoFromJson(json);
 }
 
 /// Response returned by `GET /v1/models`.
-class ModelsResponse {
-  final String object;
-  final List<ModelInfo> data;
+@freezed
+abstract class ModelsResponse with _$ModelsResponse {
+  const factory ModelsResponse({
+    @Default('list') String object,
+    required List<ModelInfo> data,
+  }) = _ModelsResponse;
 
-  const ModelsResponse({
-    this.object = 'list',
-    required this.data,
-  });
-
-  factory ModelsResponse.fromJson(Map<String, dynamic> json) {
-    final list = json['data'] as List<dynamic>? ?? [];
-    return ModelsResponse(
-      object: json['object'] as String? ?? 'list',
-      data: list
-          .whereType<Map<String, dynamic>>()
-          .map((e) => ModelInfo.fromJson(e))
-          .toList(),
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'object': object,
-        'data': data.map((e) => e.toJson()).toList(),
-      };
-
-  @override
-  String toString() => 'ModelsResponse(count: ${data.length})';
+  factory ModelsResponse.fromJson(Map<String, dynamic> json) =>
+      _$ModelsResponseFromJson(json);
 }
 
 /// Detailed status information for loaded models from `GET /v1/models/status`.
-class ModelStatus {
-  final String modelId;
-  final bool isLoaded;
-  final String? engineType;
-  final Map<String, dynamic> details;
+@freezed
+abstract class ModelStatus with _$ModelStatus {
+  const factory ModelStatus({
+    @JsonKey(name: 'model_id') required String modelId,
+    @JsonKey(name: 'loaded') @Default(false) bool isLoaded,
+    @JsonKey(name: 'engine_type') String? engineType,
+    @Default({}) Map<String, dynamic> details,
+  }) = _ModelStatus;
 
-  const ModelStatus({
-    required this.modelId,
-    required this.isLoaded,
-    this.engineType,
-    this.details = const {},
-  });
+  factory ModelStatus.fromJson(Map<String, dynamic> json) =>
+      _$ModelStatusFromJson(json);
 
-  factory ModelStatus.fromJson(String modelId, Map<String, dynamic> json) {
+  factory ModelStatus.fromEntry(String modelId, Map<String, dynamic> json) {
     return ModelStatus(
       modelId: modelId,
       isLoaded: json['loaded'] as bool? ?? json['is_loaded'] as bool? ?? false,
@@ -94,43 +51,29 @@ class ModelStatus {
       details: json,
     );
   }
-
-  Map<String, dynamic> toJson() => {
-        'model_id': modelId,
-        'loaded': isLoaded,
-        if (engineType != null) 'engine_type': engineType,
-        ...details,
-      };
-
-  @override
-  String toString() => 'ModelStatus(modelId: $modelId, isLoaded: $isLoaded)';
 }
 
 /// Response from unloading a model `POST /v1/models/{model_id}/unload`.
-class UnloadModelResponse {
-  final bool success;
-  final String modelId;
-  final String? message;
-  final Map<String, dynamic> raw;
+@freezed
+abstract class UnloadModelResponse with _$UnloadModelResponse {
+  const factory UnloadModelResponse({
+    @Default(true) bool success,
+    @JsonKey(name: 'model_id') required String modelId,
+    String? message,
+    @Default({}) Map<String, dynamic> raw,
+  }) = _UnloadModelResponse;
 
-  const UnloadModelResponse({
-    required this.success,
-    required this.modelId,
-    this.message,
-    this.raw = const {},
-  });
+  factory UnloadModelResponse.fromJson(Map<String, dynamic> json) =>
+      _$UnloadModelResponseFromJson(json);
 
-  factory UnloadModelResponse.fromJson(String modelId, Map<String, dynamic> json) {
+  factory UnloadModelResponse.fromResponse(
+      String modelId, Map<String, dynamic> json) {
     return UnloadModelResponse(
-      success: json['success'] as bool? ?? (json['status'] == 'ok' || json['status'] == 'unloaded'),
+      success: json['success'] as bool? ??
+          (json['status'] == 'ok' || json['status'] == 'unloaded'),
       modelId: modelId,
       message: json['message'] as String? ?? json['detail'] as String?,
       raw: json,
     );
   }
-
-  Map<String, dynamic> toJson() => raw;
-
-  @override
-  String toString() => 'UnloadModelResponse(modelId: $modelId, success: $success)';
 }
