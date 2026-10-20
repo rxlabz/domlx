@@ -146,6 +146,41 @@ void main() {
     });
   });
 
+  group('Request extra flattening with custom toJson', () {
+    test('ChatCompletionRequest flattens extra fields and serializes properly', () {
+      final req = ChatCompletionRequest(
+        model: 'model-a',
+        messages: [ChatMessage.user('hi')],
+        extra: {
+          'custom_sampler': 'top_k_custom',
+          'repetition_context_size': 64,
+        },
+      );
+
+      final json = req.toJson();
+      expect(json['model'], 'model-a');
+      expect(json['custom_sampler'], 'top_k_custom');
+      expect(json['repetition_context_size'], 64);
+      expect(json.containsKey('extra'), isFalse);
+    });
+
+    test('CompletionRequest flattens extra fields and serializes properly', () {
+      final req = CompletionRequest(
+        model: 'model-b',
+        prompt: 'test prompt',
+        extra: {
+          'custom_vendor_param': 123,
+        },
+      );
+
+      final json = req.toJson();
+      expect(json['model'], 'model-b');
+      expect(json['prompt'], 'test prompt');
+      expect(json['custom_vendor_param'], 123);
+      expect(json.containsKey('extra'), isFalse);
+    });
+  });
+
   group('Embeddings & Rerank Models', () {
     test('serializes and parses RerankRequest and RerankResponse', () {
       final req = RerankRequest(

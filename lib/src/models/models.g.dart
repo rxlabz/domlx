@@ -11,7 +11,7 @@ _ModelInfo _$ModelInfoFromJson(Map<String, dynamic> json) => _ModelInfo(
   object: json['object'] as String? ?? 'model',
   created: (json['created'] as num?)?.toInt(),
   ownedBy: json['owned_by'] as String?,
-  extra: json['extra'] as Map<String, dynamic>? ?? const {},
+  raw: _readRaw(json, 'raw') as Map<String, dynamic>? ?? const {},
 );
 
 Map<String, dynamic> _$ModelInfoToJson(_ModelInfo instance) =>
@@ -20,7 +20,7 @@ Map<String, dynamic> _$ModelInfoToJson(_ModelInfo instance) =>
       'object': instance.object,
       'created': ?instance.created,
       'owned_by': ?instance.ownedBy,
-      'extra': instance.extra,
+      'raw': instance.raw,
     };
 
 _ModelsResponse _$ModelsResponseFromJson(Map<String, dynamic> json) =>

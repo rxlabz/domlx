@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ModelInfo {
 
- String get id; String get object; int? get created;@JsonKey(name: 'owned_by') String? get ownedBy; Map<String, dynamic> get extra;
+ String get id; String get object; int? get created;@JsonKey(name: 'owned_by') String? get ownedBy;@JsonKey(readValue: _readRaw) Map<String, dynamic> get raw;
 /// Create a copy of ModelInfo
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +30,20 @@ $ModelInfoCopyWith<ModelInfo> get copyWith => _$ModelInfoCopyWithImpl<ModelInfo>
 @override
 bool operator ==(Object other) {
   final _this = this as ModelInfo;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ModelInfo&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.object, _this.object) || other.object == _this.object)&&(identical(other.created, _this.created) || other.created == _this.created)&&(identical(other.ownedBy, _this.ownedBy) || other.ownedBy == _this.ownedBy)&&const DeepCollectionEquality().equals(other.extra, _this.extra));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ModelInfo&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.object, _this.object) || other.object == _this.object)&&(identical(other.created, _this.created) || other.created == _this.created)&&(identical(other.ownedBy, _this.ownedBy) || other.ownedBy == _this.ownedBy)&&const DeepCollectionEquality().equals(other.raw, _this.raw));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as ModelInfo;
-  return Object.hash(runtimeType,_this.id,_this.object,_this.created,_this.ownedBy,const DeepCollectionEquality().hash(_this.extra));
+  return Object.hash(runtimeType,_this.id,_this.object,_this.created,_this.ownedBy,const DeepCollectionEquality().hash(_this.raw));
 }
 
 @override
 String toString() {
   final _this = this as ModelInfo;
-  return 'ModelInfo(id: ${_this.id}, object: ${_this.object}, created: ${_this.created}, ownedBy: ${_this.ownedBy}, extra: ${_this.extra})';
+  return 'ModelInfo(id: ${_this.id}, object: ${_this.object}, created: ${_this.created}, ownedBy: ${_this.ownedBy}, raw: ${_this.raw})';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $ModelInfoCopyWith<$Res>  {
   factory $ModelInfoCopyWith(ModelInfo value, $Res Function(ModelInfo) _then) = _$ModelInfoCopyWithImpl;
 @useResult
 $Res call({
- String id, String object, int? created,@JsonKey(name: 'owned_by') String? ownedBy, Map<String, dynamic> extra
+ String id, String object, int? created,@JsonKey(name: 'owned_by') String? ownedBy,@JsonKey(readValue: _readRaw) Map<String, dynamic> raw
 });
 
 
@@ -71,13 +71,13 @@ class _$ModelInfoCopyWithImpl<$Res>
 
 /// Create a copy of ModelInfo
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? object = null,Object? created = freezed,Object? ownedBy = freezed,Object? extra = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? object = null,Object? created = freezed,Object? ownedBy = freezed,Object? raw = null,}) {
   return _then(ModelInfo(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,object: null == object ? _self.object : object // ignore: cast_nullable_to_non_nullable
 as String,created: freezed == created ? _self.created : created // ignore: cast_nullable_to_non_nullable
 as int?,ownedBy: freezed == ownedBy ? _self.ownedBy : ownedBy // ignore: cast_nullable_to_non_nullable
-as String?,extra: null == extra ? _self.extra : extra // ignore: cast_nullable_to_non_nullable
+as String?,raw: null == raw ? _self.raw : raw // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,
   ));
 }
@@ -163,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String object,  int? created, @JsonKey(name: 'owned_by')  String? ownedBy,  Map<String, dynamic> extra)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String object,  int? created, @JsonKey(name: 'owned_by')  String? ownedBy, @JsonKey(readValue: _readRaw)  Map<String, dynamic> raw)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ModelInfo() when $default != null:
-return $default(_that.id,_that.object,_that.created,_that.ownedBy,_that.extra);case _:
+return $default(_that.id,_that.object,_that.created,_that.ownedBy,_that.raw);case _:
   return orElse();
 
 }
@@ -184,10 +184,10 @@ return $default(_that.id,_that.object,_that.created,_that.ownedBy,_that.extra);c
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String object,  int? created, @JsonKey(name: 'owned_by')  String? ownedBy,  Map<String, dynamic> extra)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String object,  int? created, @JsonKey(name: 'owned_by')  String? ownedBy, @JsonKey(readValue: _readRaw)  Map<String, dynamic> raw)  $default,) {final _that = this;
 switch (_that) {
 case _ModelInfo():
-return $default(_that.id,_that.object,_that.created,_that.ownedBy,_that.extra);case _:
+return $default(_that.id,_that.object,_that.created,_that.ownedBy,_that.raw);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -204,10 +204,10 @@ return $default(_that.id,_that.object,_that.created,_that.ownedBy,_that.extra);c
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String object,  int? created, @JsonKey(name: 'owned_by')  String? ownedBy,  Map<String, dynamic> extra)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String object,  int? created, @JsonKey(name: 'owned_by')  String? ownedBy, @JsonKey(readValue: _readRaw)  Map<String, dynamic> raw)?  $default,) {final _that = this;
 switch (_that) {
 case _ModelInfo() when $default != null:
-return $default(_that.id,_that.object,_that.created,_that.ownedBy,_that.extra);case _:
+return $default(_that.id,_that.object,_that.created,_that.ownedBy,_that.raw);case _:
   return null;
 
 }
@@ -219,18 +219,18 @@ return $default(_that.id,_that.object,_that.created,_that.ownedBy,_that.extra);c
 @JsonSerializable()
 
 class _ModelInfo implements ModelInfo {
-  const _ModelInfo({required this.id, this.object = 'model', this.created, @JsonKey(name: 'owned_by') this.ownedBy,  Map<String, dynamic> extra = const {}}): _extra = extra;
+  const _ModelInfo({required this.id, this.object = 'model', this.created, @JsonKey(name: 'owned_by') this.ownedBy, @JsonKey(readValue: _readRaw)  Map<String, dynamic> raw = const {}}): _raw = raw;
   factory _ModelInfo.fromJson(Map<String, dynamic> json) => _$ModelInfoFromJson(json);
 
 @override final  String id;
 @override@JsonKey() final  String object;
 @override final  int? created;
 @override@JsonKey(name: 'owned_by') final  String? ownedBy;
- final  Map<String, dynamic> _extra;
-@override@JsonKey() Map<String, dynamic> get extra {
-  if (_extra is EqualUnmodifiableMapView) return _extra;
+ final  Map<String, dynamic> _raw;
+@override@JsonKey(readValue: _readRaw) Map<String, dynamic> get raw {
+  if (_raw is EqualUnmodifiableMapView) return _raw;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableMapView(_extra);
+  return EqualUnmodifiableMapView(_raw);
 }
 
 
@@ -247,18 +247,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ModelInfo&&(identical(other.id, id) || other.id == id)&&(identical(other.object, object) || other.object == object)&&(identical(other.created, created) || other.created == created)&&(identical(other.ownedBy, ownedBy) || other.ownedBy == ownedBy)&&const DeepCollectionEquality().equals(other.extra, _extra));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ModelInfo&&(identical(other.id, id) || other.id == id)&&(identical(other.object, object) || other.object == object)&&(identical(other.created, created) || other.created == created)&&(identical(other.ownedBy, ownedBy) || other.ownedBy == ownedBy)&&const DeepCollectionEquality().equals(other.raw, _raw));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,object,created,ownedBy,const DeepCollectionEquality().hash(_extra));
+    return Object.hash(runtimeType,id,object,created,ownedBy,const DeepCollectionEquality().hash(_raw));
 }
 
 @override
 String toString() {
-    return 'ModelInfo(id: $id, object: $object, created: $created, ownedBy: $ownedBy, extra: $extra)';
+    return 'ModelInfo(id: $id, object: $object, created: $created, ownedBy: $ownedBy, raw: $raw)';
 }
 
 
@@ -269,7 +269,7 @@ abstract mixin class _$ModelInfoCopyWith<$Res> implements $ModelInfoCopyWith<$Re
   factory _$ModelInfoCopyWith(_ModelInfo value, $Res Function(_ModelInfo) _then) = __$ModelInfoCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String object, int? created,@JsonKey(name: 'owned_by') String? ownedBy, Map<String, dynamic> extra
+ String id, String object, int? created,@JsonKey(name: 'owned_by') String? ownedBy,@JsonKey(readValue: _readRaw) Map<String, dynamic> raw
 });
 
 
@@ -286,13 +286,13 @@ class __$ModelInfoCopyWithImpl<$Res>
 
 /// Create a copy of ModelInfo
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? object = null,Object? created = freezed,Object? ownedBy = freezed,Object? extra = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? object = null,Object? created = freezed,Object? ownedBy = freezed,Object? raw = null,}) {
   return _then(_ModelInfo(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,object: null == object ? _self.object : object // ignore: cast_nullable_to_non_nullable
 as String,created: freezed == created ? _self.created : created // ignore: cast_nullable_to_non_nullable
 as int?,ownedBy: freezed == ownedBy ? _self.ownedBy : ownedBy // ignore: cast_nullable_to_non_nullable
-as String?,extra: null == extra ? _self._extra : extra // ignore: cast_nullable_to_non_nullable
+as String?,raw: null == raw ? _self._raw : raw // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,
   ));
 }

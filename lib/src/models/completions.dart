@@ -5,7 +5,7 @@ part 'completions.freezed.dart';
 part 'completions.g.dart';
 
 /// Request payload for legacy text completion `POST /v1/completions`.
-@freezed
+@Freezed(toJson: false)
 abstract class CompletionRequest with _$CompletionRequest {
   const CompletionRequest._();
 
@@ -47,7 +47,6 @@ abstract class CompletionRequest with _$CompletionRequest {
     @Default({}) Map<String, dynamic> extra,
   }) = _CompletionRequest;
 
-  @override
   Map<String, dynamic> toJson() => {
         'model': model,
         'prompt': prompt,

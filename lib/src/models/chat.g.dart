@@ -103,25 +103,6 @@ _ChatCompletionRequest _$ChatCompletionRequestFromJson(
   extra: json['extra'] as Map<String, dynamic>? ?? const {},
 );
 
-Map<String, dynamic> _$ChatCompletionRequestToJson(
-  _ChatCompletionRequest instance,
-) => <String, dynamic>{
-  'model': instance.model,
-  'messages': instance.messages.map((e) => e.toJson()).toList(),
-  'temperature': ?instance.temperature,
-  'top_p': ?instance.topP,
-  'top_k': ?instance.topK,
-  'repetition_penalty': ?instance.repetitionPenalty,
-  'max_tokens': ?instance.maxTokens,
-  'stream': ?instance.stream,
-  'tools': ?instance.tools?.map((e) => e.toJson()).toList(),
-  'tool_choice': ?instance.toolChoice,
-  'response_format': ?instance.responseFormat?.toJson(),
-  'stop': ?instance.stop,
-  'user': ?instance.user,
-  'extra': instance.extra,
-};
-
 _ChatChoice _$ChatChoiceFromJson(Map<String, dynamic> json) => _ChatChoice(
   index: (json['index'] as num?)?.toInt() ?? 0,
   message: ChatMessage.fromJson(json['message'] as Map<String, dynamic>),

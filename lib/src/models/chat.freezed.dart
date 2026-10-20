@@ -2311,8 +2311,6 @@ mixin _$ChatCompletionRequest {
 @pragma('vm:prefer-inline')
 $ChatCompletionRequestCopyWith<ChatCompletionRequest> get copyWith => _$ChatCompletionRequestCopyWithImpl<ChatCompletionRequest>(this as ChatCompletionRequest, _$identity);
 
-  /// Serializes this ChatCompletionRequest to a JSON map.
-  Map<String, dynamic> toJson();
 
 
 @override
@@ -2525,7 +2523,7 @@ return $default(_that.model,_that.messages,_that.temperature,_that.topP,_that.to
 }
 
 /// @nodoc
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 
 class _ChatCompletionRequest extends ChatCompletionRequest {
   const _ChatCompletionRequest({required this.model, required  List<ChatMessage> messages, this.temperature, @JsonKey(name: 'top_p') this.topP, @JsonKey(name: 'top_k') this.topK, @JsonKey(name: 'repetition_penalty') this.repetitionPenalty, @JsonKey(name: 'max_tokens') this.maxTokens, this.stream,  List<Tool>? tools, @JsonKey(name: 'tool_choice') this.toolChoice, @JsonKey(name: 'response_format') this.responseFormat, this.stop, this.user,  Map<String, dynamic> extra = const {}}): _messages = messages,_tools = tools,_extra = extra,super._();
@@ -2589,10 +2587,7 @@ class _ChatCompletionRequest extends ChatCompletionRequest {
 @pragma('vm:prefer-inline')
 _$ChatCompletionRequestCopyWith<_ChatCompletionRequest> get copyWith => __$ChatCompletionRequestCopyWithImpl<_ChatCompletionRequest>(this, _$identity);
 
-@override
-Map<String, dynamic> toJson() {
-  return _$ChatCompletionRequestToJson(this, );
-}
+
 
 @override
 bool operator ==(Object other) {

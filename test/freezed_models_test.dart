@@ -165,6 +165,17 @@ void main() {
       final model2 = model1.copyWith(ownedBy: 'organization');
       expect(model2.id, 'model-a');
       expect(model2.ownedBy, 'organization');
+
+      final modelWithCustomProps = ModelInfo.fromJson({
+        'id': 'model-custom',
+        'object': 'model',
+        'owned_by': 'mlx',
+        'context_length': 32768,
+        'architecture': 'qwen2',
+      });
+      expect(modelWithCustomProps.id, 'model-custom');
+      expect(modelWithCustomProps.raw['context_length'], 32768);
+      expect(modelWithCustomProps.raw['architecture'], 'qwen2');
     });
 
     test('Usage value equality and copyWith', () {

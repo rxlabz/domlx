@@ -22,22 +22,6 @@ _CompletionRequest _$CompletionRequestFromJson(Map<String, dynamic> json) =>
       extra: json['extra'] as Map<String, dynamic>? ?? const {},
     );
 
-Map<String, dynamic> _$CompletionRequestToJson(_CompletionRequest instance) =>
-    <String, dynamic>{
-      'model': instance.model,
-      'prompt': ?instance.prompt,
-      'temperature': ?instance.temperature,
-      'top_p': ?instance.topP,
-      'max_tokens': ?instance.maxTokens,
-      'n': ?instance.n,
-      'stream': ?instance.stream,
-      'stop': ?instance.stop,
-      'suffix': ?instance.suffix,
-      'echo': ?instance.echo,
-      'user': ?instance.user,
-      'extra': instance.extra,
-    };
-
 _CompletionChoice _$CompletionChoiceFromJson(Map<String, dynamic> json) =>
     _CompletionChoice(
       text: json['text'] as String,

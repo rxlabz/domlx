@@ -3,6 +3,8 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'models.freezed.dart';
 part 'models.g.dart';
 
+Object? _readRaw(Map json, String key) => json;
+
 /// Metadata for a single model discovered by oMLX.
 @freezed
 abstract class ModelInfo with _$ModelInfo {
@@ -11,7 +13,7 @@ abstract class ModelInfo with _$ModelInfo {
     @Default('model') String object,
     int? created,
     @JsonKey(name: 'owned_by') String? ownedBy,
-    @Default({}) Map<String, dynamic> extra,
+    @JsonKey(readValue: _readRaw) @Default({}) Map<String, dynamic> raw,
   }) = _ModelInfo;
 
   factory ModelInfo.fromJson(Map<String, dynamic> json) =>

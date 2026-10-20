@@ -35,8 +35,6 @@ mixin _$CompletionRequest {
 @pragma('vm:prefer-inline')
 $CompletionRequestCopyWith<CompletionRequest> get copyWith => _$CompletionRequestCopyWithImpl<CompletionRequest>(this as CompletionRequest, _$identity);
 
-  /// Serializes this CompletionRequest to a JSON map.
-  Map<String, dynamic> toJson();
 
 
 @override
@@ -235,7 +233,7 @@ return $default(_that.model,_that.prompt,_that.temperature,_that.topP,_that.maxT
 }
 
 /// @nodoc
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 
 class _CompletionRequest extends CompletionRequest {
   const _CompletionRequest({required this.model, required this.prompt, this.temperature, @JsonKey(name: 'top_p') this.topP, @JsonKey(name: 'max_tokens') this.maxTokens, this.n, this.stream, this.stop, this.suffix, this.echo, this.user,  Map<String, dynamic> extra = const {}}): _extra = extra,super._();
@@ -279,10 +277,7 @@ class _CompletionRequest extends CompletionRequest {
 @pragma('vm:prefer-inline')
 _$CompletionRequestCopyWith<_CompletionRequest> get copyWith => __$CompletionRequestCopyWithImpl<_CompletionRequest>(this, _$identity);
 
-@override
-Map<String, dynamic> toJson() {
-  return _$CompletionRequestToJson(this, );
-}
+
 
 @override
 bool operator ==(Object other) {

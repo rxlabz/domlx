@@ -84,7 +84,7 @@ abstract class TextContentPart extends ContentPart with _$TextContentPart {
       _$TextContentPartFromJson(json);
 }
 
-@freezed
+@Freezed(toJson: false)
 abstract class ImageContentPart extends ContentPart with _$ImageContentPart {
   const ImageContentPart._() : super('image_url');
 
@@ -366,7 +366,7 @@ abstract class ResponseFormat with _$ResponseFormat {
 }
 
 /// Request payload for `POST /v1/chat/completions`.
-@freezed
+@Freezed(toJson: false)
 abstract class ChatCompletionRequest with _$ChatCompletionRequest {
   const ChatCompletionRequest._();
 
@@ -414,7 +414,6 @@ abstract class ChatCompletionRequest with _$ChatCompletionRequest {
     @Default({}) Map<String, dynamic> extra,
   }) = _ChatCompletionRequest;
 
-  @override
   Map<String, dynamic> toJson() => {
         'model': model,
         'messages': messages.map((m) => m.toJson()).toList(),
