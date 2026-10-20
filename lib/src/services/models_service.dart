@@ -41,7 +41,8 @@ class ModelsService {
 
   /// Manually unloads/evicts a model from memory (`POST /v1/models/{model_id}/unload`).
   Future<UnloadModelResponse> unload(String modelId) async {
-    final json = await _client.post('/v1/models/$modelId/unload');
+    final encodedId = Uri.encodeComponent(modelId);
+    final json = await _client.post('/v1/models/$encodedId/unload');
     return UnloadModelResponse.fromResponse(
       modelId,
       json is Map<String, dynamic> ? json : {'status': 'ok'},

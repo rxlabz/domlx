@@ -76,10 +76,10 @@ void main() {
       expect(models.data.first.id, 'mlx-community/Qwen2.5-7B-Instruct-4bit');
     });
 
-    test('POST /v1/models/{id}/unload unloads model', () async {
+    test('POST /v1/models/{id}/unload unloads model with URL encoding', () async {
       final mock = MockClient((request) async {
         expect(request.method, 'POST');
-        expect(request.url.path, '/v1/models/test-model/unload');
+        expect(request.url.path, '/v1/models/mlx-community%2FQwen2.5-7B/unload');
 
         return http.Response(
           jsonEncode({'status': 'unloaded', 'success': true}),
@@ -93,9 +93,9 @@ void main() {
         client: mock,
       );
 
-      final res = await client.models.unload('test-model');
+      final res = await client.models.unload('mlx-community/Qwen2.5-7B');
       expect(res.success, isTrue);
-      expect(res.modelId, 'test-model');
+      expect(res.modelId, 'mlx-community/Qwen2.5-7B');
     });
 
     test('POST /v1/chat/completions (non-streaming) returns response', () async {
