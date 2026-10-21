@@ -1,3 +1,16 @@
+## 1.0.1
+
+- **Streaming & SSE Robustness**:
+  - Added inactivity timeout handling to `OmlxHttpClient.postStream` to throw `OmlxNetworkException` instead of hanging indefinitely on stalled connections.
+  - Added mid-stream SSE error detection (`event: error` and `error`/`detail` JSON payloads), surfacing typed `OmlxApiException`s during streaming.
+- **Error Handling**:
+  - Updated `OmlxApiException.isInsufficientMemory` to match both HTTP `507` and `code == 'insufficient_memory'`.
+  - Improved error response parsing for string error payloads, top-level `code` fields, and numeric error status codes.
+- **Type Safety & Documentation**:
+  - Enabled strict analyzer checks (`strict-casts`, `strict-inference`, `strict-raw-types`) and `public_member_api_docs`.
+  - Added comprehensive `///` API documentation across all public services, exceptions, and models.
+  - Added unit tests for SSE timeouts, mid-stream error handling, and exception helpers.
+
 ## 1.0.0
 
 - Initial release of `domlx`, a type-safe Dart client library for **oMLX** (Apple Silicon LLM inference server).
