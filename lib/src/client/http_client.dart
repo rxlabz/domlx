@@ -229,8 +229,23 @@ class OmlxHttpClient {
     }
 
     final lines = streamedResponse.stream
+        .timeout(
+          timeout,
+          onTimeout: (sink) => sink.addError(
+            TimeoutException(
+              'Stream inactive for longer than $timeout',
+              timeout,
+            ),
+          ),
+        )
         .handleError((Object error, StackTrace stackTrace) {
           if (error is OmlxException) throw error;
+          if (error is TimeoutException) {
+            throw OmlxNetworkException(
+              'Stream timed out after $timeout of inactivity for $uri',
+              cause: error,
+            );
+          }
           throw OmlxNetworkException(
             'Error reading stream data from $uri',
             cause: error,
@@ -239,12 +254,22 @@ class OmlxHttpClient {
         .transform(utf8.decoder)
         .transform(const LineSplitter());
 
+    String? eventType;
+
     await for (final line in lines) {
       final trimmed = line.trim();
-      if (trimmed.isEmpty) continue;
+      if (trimmed.isEmpty) {
+        eventType = null;
+        continue;
+      }
 
       // Handle oMLX SSE keep-alive comments (e.g. ": keep-alive")
       if (trimmed.startsWith(':')) {
+        continue;
+      }
+
+      if (trimmed.startsWith('event:')) {
+        eventType = trimmed.substring(6).trim();
         continue;
       }
 
@@ -257,10 +282,27 @@ class OmlxHttpClient {
         try {
           final decoded = jsonDecode(data);
           if (decoded is Map<String, dynamic>) {
+            // Check for mid-stream error payloads
+            if (eventType == 'error' ||
+                decoded.containsKey('error') ||
+                (decoded.containsKey('detail') &&
+                    !decoded.containsKey('id') &&
+                    !decoded.containsKey('choices'))) {
+              final status = streamedResponse.statusCode >= 400
+                  ? streamedResponse.statusCode
+                  : 500;
+              _handleErrorResponse(status, jsonEncode(decoded), uri);
+            }
             yield decoded;
           }
+        } on OmlxException {
+          rethrow;
         } catch (e) {
-          throw OmlxParsingException('Failed to parse SSE JSON payload', cause: e, rawData: data);
+          throw OmlxParsingException(
+            'Failed to parse SSE JSON payload',
+            cause: e,
+            rawData: data,
+          );
         }
       }
     }
@@ -301,11 +343,19 @@ class OmlxHttpClient {
             final err = parsed['error'] as Map<String, dynamic>;
             message = err['message'] as String? ?? message;
             errorType = err['type'] as String?;
-            code = err['code'] as String?;
+            code = err['code']?.toString();
+            if (err['code'] is int) {
+              statusCode = err['code'] as int;
+            }
+          } else if (parsed['error'] != null) {
+            message = parsed['error'].toString();
           } else if (parsed['detail'] != null) {
             message = parsed['detail'].toString();
           } else if (parsed['message'] != null) {
             message = parsed['message'].toString();
+          }
+          if (parsed['code'] != null) {
+            code ??= parsed['code'].toString();
           }
         }
       } catch (_) {

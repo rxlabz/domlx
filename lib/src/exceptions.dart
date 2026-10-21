@@ -43,8 +43,9 @@ class OmlxApiException extends OmlxException {
   /// Whether the model is currently loading or in conflict state (409).
   bool get isConflict => statusCode == 409;
 
-  /// Whether the model exceeded available memory (507 Insufficient Storage).
-  bool get isInsufficientMemory => statusCode == 507;
+  /// Whether the model exceeded available memory (507 Insufficient Storage or insufficient_memory code).
+  bool get isInsufficientMemory =>
+      statusCode == 507 || code == 'insufficient_memory';
 
   @override
   String toString() {

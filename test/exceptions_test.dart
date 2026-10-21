@@ -36,6 +36,13 @@ void main() {
 
       final e507 = OmlxApiException(statusCode: 507, message: 'No memory');
       expect(e507.isInsufficientMemory, isTrue);
+
+      final eMemoryCode = OmlxApiException(
+        statusCode: 500,
+        message: 'No memory',
+        code: 'insufficient_memory',
+      );
+      expect(eMemoryCode.isInsufficientMemory, isTrue);
     });
 
     test('OmlxNetworkException with and without cause', () {

@@ -222,6 +222,83 @@ void main() {
       );
     });
 
+    test('postStream handles mid-stream error payloads', () async {
+      // 1. Mid-stream error object inside data: line
+      var client = OmlxHttpClient(
+        baseUrl: Uri.parse('http://localhost:8000'),
+        client: MockClient.streaming((req, bodyStream) async {
+          final sse = [
+            'data: {"id":"1","choices":[{"index":0,"delta":{"content":"Hi"}}]}\n\n',
+            'data: {"error":{"message":"Context length exceeded","type":"invalid_request_error","code":"context_length_exceeded"}}\n\n',
+          ];
+          return http.StreamedResponse(
+            Stream.fromIterable(sse.map(utf8.encode)),
+            200,
+          );
+        }),
+      );
+
+      expect(
+        () => client.postStream('/v1/chat/completions').toList(),
+        throwsA(
+          isA<OmlxApiException>()
+              .having((e) => e.message, 'message', 'Context length exceeded')
+              .having((e) => e.code, 'code', 'context_length_exceeded'),
+        ),
+      );
+
+      // 2. Mid-stream event: error
+      client = OmlxHttpClient(
+        baseUrl: Uri.parse('http://localhost:8000'),
+        client: MockClient.streaming((req, bodyStream) async {
+          final sse = [
+            'event: error\n',
+            'data: {"message":"GPU out of memory","code":"insufficient_memory"}\n\n',
+          ];
+          return http.StreamedResponse(
+            Stream.fromIterable(sse.map(utf8.encode)),
+            200,
+          );
+        }),
+      );
+
+      expect(
+        () => client.postStream('/v1/chat/completions').toList(),
+        throwsA(
+          isA<OmlxApiException>()
+              .having((e) => e.message, 'message', 'GPU out of memory')
+              .having((e) => e.isInsufficientMemory, 'isInsufficientMemory', isTrue),
+        ),
+      );
+    });
+
+    test('postStream times out on stream inactivity after headers received', () async {
+      final controller = StreamController<List<int>>();
+      addTearDown(() async {
+        if (!controller.isClosed) await controller.close();
+      });
+
+      final client = OmlxHttpClient(
+        baseUrl: Uri.parse('http://localhost:8000'),
+        timeout: const Duration(milliseconds: 50),
+        client: MockClient.streaming((req, bodyStream) async {
+          // Immediately return 200 OK headers, but emit no stream chunks
+          return http.StreamedResponse(controller.stream, 200);
+        }),
+      );
+
+      await expectLater(
+        client.postStream('/v1/chat/completions').toList(),
+        throwsA(
+          isA<OmlxNetworkException>().having(
+            (e) => e.message,
+            'message',
+            contains('Stream timed out after 0:00:00.050000 of inactivity'),
+          ),
+        ),
+      );
+    });
+
     test('close closes internal client and does not close external client', () {
       final internalClient = OmlxHttpClient(baseUrl: Uri.parse('http://localhost:8000'));
       expect(() => internalClient.close(), returnsNormally);
