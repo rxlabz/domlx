@@ -4,7 +4,7 @@ import 'common.dart';
 part 'embeddings.freezed.dart';
 part 'embeddings.g.dart';
 
-Object? _readEmbedding(Map json, String key) {
+Object? _readEmbedding(Map<dynamic, dynamic> json, String key) {
   final val = json['embedding'];
   if (val is List) {
     return val.map((e) => (e as num).toDouble()).toList();
@@ -12,7 +12,7 @@ Object? _readEmbedding(Map json, String key) {
   return null;
 }
 
-Object? _readBase64(Map json, String key) {
+Object? _readBase64(Map<dynamic, dynamic> json, String key) {
   final val = json['embedding'];
   if (val is String) {
     return val;
@@ -23,7 +23,9 @@ Object? _readBase64(Map json, String key) {
 /// Request for `POST /v1/embeddings`.
 @freezed
 abstract class EmbeddingRequest with _$EmbeddingRequest {
+  /// Creates an [EmbeddingRequest] instance.
   const factory EmbeddingRequest({
+    /// Model ID to use for generating embeddings.
     required String model,
 
     /// Input text string or list of text strings.
@@ -71,6 +73,7 @@ abstract class EmbeddingRequest with _$EmbeddingRequest {
         user: user,
       );
 
+  /// Creates an [EmbeddingRequest] from a JSON map.
   factory EmbeddingRequest.fromJson(Map<String, dynamic> json) =>
       _$EmbeddingRequestFromJson(json);
 }
@@ -78,8 +81,12 @@ abstract class EmbeddingRequest with _$EmbeddingRequest {
 /// An individual embedding result vector or base64 representation.
 @freezed
 abstract class EmbeddingItem with _$EmbeddingItem {
+  /// Creates an [EmbeddingItem] instance.
   const factory EmbeddingItem({
+    /// Index of the embedding in the batch.
     @Default(0) int index,
+
+    /// Object type, typically 'embedding'.
     @Default('embedding') String object,
 
     /// The embedding vector when encoding is float.
@@ -90,6 +97,7 @@ abstract class EmbeddingItem with _$EmbeddingItem {
     String? base64Embedding,
   }) = _EmbeddingItem;
 
+  /// Creates an [EmbeddingItem] from a JSON map.
   factory EmbeddingItem.fromJson(Map<String, dynamic> json) =>
       _$EmbeddingItemFromJson(json);
 }
@@ -97,13 +105,22 @@ abstract class EmbeddingItem with _$EmbeddingItem {
 /// Response returned by `POST /v1/embeddings`.
 @freezed
 abstract class EmbeddingResponse with _$EmbeddingResponse {
+  /// Creates an [EmbeddingResponse] instance.
   const factory EmbeddingResponse({
+    /// Object type, typically 'list'.
     @Default('list') String object,
+
+    /// Model ID used.
     required String model,
+
+    /// List of generated embeddings.
     required List<EmbeddingItem> data,
+
+    /// Token usage statistics.
     Usage? usage,
   }) = _EmbeddingResponse;
 
+  /// Creates an [EmbeddingResponse] from a JSON map.
   factory EmbeddingResponse.fromJson(Map<String, dynamic> json) =>
       _$EmbeddingResponseFromJson(json);
 }

@@ -1,7 +1,9 @@
 /// Base exception for all errors thrown by the oMLX client library.
 sealed class OmlxException implements Exception {
+  /// The error message describing this exception.
   final String message;
 
+  /// Creates an [OmlxException] with the given [message].
   const OmlxException(this.message);
 
   @override
@@ -25,6 +27,7 @@ class OmlxApiException extends OmlxException {
   /// The URI of the failed request.
   final Uri? uri;
 
+  /// Creates an [OmlxApiException] instance.
   const OmlxApiException({
     required this.statusCode,
     required String message,
@@ -59,8 +62,10 @@ class OmlxApiException extends OmlxException {
 
 /// Exception thrown when network connectivity or socket issues occur.
 class OmlxNetworkException extends OmlxException {
+  /// The underlying error or exception that caused this failure, if available.
   final Object? cause;
 
+  /// Creates an [OmlxNetworkException] instance.
   const OmlxNetworkException(super.message, {this.cause});
 
   @override
@@ -71,9 +76,13 @@ class OmlxNetworkException extends OmlxException {
 
 /// Exception thrown when response parsing fails (e.g., invalid JSON or SSE).
 class OmlxParsingException extends OmlxException {
+  /// The underlying error or exception that caused parsing to fail, if available.
   final Object? cause;
+
+  /// The raw string data that could not be parsed, if available.
   final String? rawData;
 
+  /// Creates an [OmlxParsingException] instance.
   const OmlxParsingException(super.message, {this.cause, this.rawData});
 
   @override

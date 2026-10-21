@@ -5,6 +5,7 @@ import '../models/completions.dart';
 class CompletionsService {
   final OmlxHttpClient _client;
 
+  /// Creates a [CompletionsService] instance.
   const CompletionsService(this._client);
 
   /// Creates a non-streaming text completion.

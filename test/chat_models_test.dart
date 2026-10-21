@@ -37,8 +37,8 @@ void main() {
       );
 
       final json = msg.toJson();
-      expect(json['content'], isA<List>());
-      final list = json['content'] as List;
+      expect(json['content'], isA<List<dynamic>>());
+      final list = json['content'] as List<dynamic>;
       expect(list.length, 2);
       expect(list[0]['type'], 'text');
       expect(list[1]['type'], 'image_url');
@@ -47,7 +47,7 @@ void main() {
 
       final parsed = ChatMessage.fromJson(json);
       expect(parsed.textContent, 'What is in this image?');
-      expect(parsed.content, isA<List>());
+      expect(parsed.content, isA<List<dynamic>>());
 
       final userPartsMsg = ChatMessage.userParts([
         ContentPart.text('Hello typed user parts'),
@@ -84,8 +84,8 @@ void main() {
       );
 
       final json = msg.toJson();
-      expect(json['tool_calls'], isA<List>());
-      expect((json['tool_calls'] as List)[0]['id'], 'call_123');
+      expect(json['tool_calls'], isA<List<dynamic>>());
+      expect((json['tool_calls'] as List<dynamic>)[0]['id'], 'call_123');
 
       final parsed = ChatMessage.fromJson(json);
       expect(parsed.toolCalls?.length, 1);
@@ -296,7 +296,7 @@ void main() {
       expect(json['instructions'], 'You are a programming assistant.');
       expect(json['store'], true);
       expect(json['custom_flag'], true);
-      expect(json['input'], isA<List>());
+      expect(json['input'], isA<List<dynamic>>());
       final encoded = jsonEncode(json);
       expect(encoded, contains('reverse a string'));
 

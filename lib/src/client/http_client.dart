@@ -24,6 +24,7 @@ class OmlxHttpClient {
   /// Extra custom headers applied to every request.
   final Map<String, String> defaultHeaders;
 
+  /// Creates an [OmlxHttpClient] instance.
   OmlxHttpClient({
     required Uri baseUrl,
     this.apiKey,

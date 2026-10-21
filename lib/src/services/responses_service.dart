@@ -5,6 +5,7 @@ import '../models/responses_api.dart';
 class ResponsesService {
   final OmlxHttpClient _client;
 
+  /// Creates a [ResponsesService] instance.
   const ResponsesService(this._client);
 
   /// Creates a response object via the Responses API.

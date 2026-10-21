@@ -5,6 +5,7 @@ import '../models/embeddings.dart';
 class EmbeddingsService {
   final OmlxHttpClient _client;
 
+  /// Creates an [EmbeddingsService] instance.
   const EmbeddingsService(this._client);
 
   /// Generates embeddings for input string(s).

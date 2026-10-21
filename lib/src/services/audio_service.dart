@@ -7,6 +7,7 @@ import '../models/audio.dart';
 class AudioService {
   final OmlxHttpClient _client;
 
+  /// Creates an [AudioService] instance.
   const AudioService(this._client);
 
   /// Transcribes audio via Whisper (`POST /v1/audio/transcriptions`).

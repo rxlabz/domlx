@@ -120,7 +120,7 @@ void main() {
         baseUrl: Uri.parse('http://localhost:8000'),
         timeout: const Duration(milliseconds: 10),
         client: MockClient((req) async {
-          await Future.delayed(const Duration(milliseconds: 50));
+          await Future<void>.delayed(const Duration(milliseconds: 50));
           return http.Response('{}', 200);
         }),
       );
@@ -137,7 +137,7 @@ void main() {
         baseUrl: Uri.parse('http://localhost:8000'),
         timeout: const Duration(milliseconds: 10),
         client: MockClient.streaming((req, stream) async {
-          await Future.delayed(const Duration(milliseconds: 50));
+          await Future<void>.delayed(const Duration(milliseconds: 50));
           return http.StreamedResponse(const Stream.empty(), 200);
         }),
       );

@@ -10,19 +10,30 @@ part 'responses_api.g.dart';
 abstract class InputItem with _$InputItem {
   const InputItem._();
 
+  /// Creates an [InputItem] instance.
   const factory InputItem({
+    /// Role of the input author (e.g. 'user', 'developer').
     required String role,
+
+    /// Input message content string or parts.
     required dynamic content,
+
+    /// Optional item type.
     String? type,
+
+    /// Additional JSON fields preserved.
     @Default({}) Map<String, dynamic> extra,
   }) = _InputItem;
 
+  /// Creates a developer instruction [InputItem].
   factory InputItem.developer(String instructions) =>
       InputItem(role: 'developer', content: instructions);
 
+  /// Creates a user content [InputItem].
   factory InputItem.user(dynamic content) =>
       InputItem(role: 'user', content: content);
 
+  /// Creates an [InputItem] from a JSON map.
   factory InputItem.fromJson(Map<String, dynamic> json) {
     final copy = Map<String, dynamic>.from(json);
     final role = copy.remove('role') as String? ?? 'user';
@@ -36,6 +47,7 @@ abstract class InputItem with _$InputItem {
     );
   }
 
+  /// Serializes this input item to a JSON map.
   Map<String, dynamic> toJson() => {
         'role': role,
         'content': content,
@@ -49,7 +61,9 @@ abstract class InputItem with _$InputItem {
 abstract class ResponsesRequest with _$ResponsesRequest {
   const ResponsesRequest._();
 
+  /// Creates a [ResponsesRequest] instance.
   const factory ResponsesRequest({
+    /// Model ID to invoke.
     required String model,
 
     /// String prompt or list of input items.
@@ -71,6 +85,7 @@ abstract class ResponsesRequest with _$ResponsesRequest {
     @Default({}) Map<String, dynamic> extra,
   }) = _ResponsesRequest;
 
+  /// Serializes this request to a JSON map.
   Map<String, dynamic> toJson() {
     dynamic serializedInput = input;
     if (input is List) {
@@ -92,6 +107,7 @@ abstract class ResponsesRequest with _$ResponsesRequest {
     };
   }
 
+  /// Creates a [ResponsesRequest] from a JSON map.
   factory ResponsesRequest.fromJson(Map<String, dynamic> json) {
     final copy = Map<String, dynamic>.from(json);
     final model = copy.remove('model') as String? ?? '';
@@ -123,14 +139,25 @@ abstract class ResponsesRequest with _$ResponsesRequest {
 abstract class ResponseOutputItem with _$ResponseOutputItem {
   const ResponseOutputItem._();
 
+  /// Creates a [ResponseOutputItem] instance.
   const factory ResponseOutputItem({
+    /// Output item identifier.
     required String id,
+
+    /// Item type (e.g. 'message').
     @Default('message') String type,
+
+    /// Role of the output message.
     @Default('assistant') String role,
+
+    /// Content payload of the output item.
     dynamic content,
+
+    /// Additional JSON fields preserved.
     @Default({}) Map<String, dynamic> extra,
   }) = _ResponseOutputItem;
 
+  /// Creates a [ResponseOutputItem] from a JSON map.
   factory ResponseOutputItem.fromJson(Map<String, dynamic> json) {
     final copy = Map<String, dynamic>.from(json);
     final id = copy.remove('id') as String? ?? '';
@@ -146,6 +173,7 @@ abstract class ResponseOutputItem with _$ResponseOutputItem {
     );
   }
 
+  /// Serializes this input item to a JSON map.
   Map<String, dynamic> toJson() => {
         'id': id,
         'type': type,
@@ -158,18 +186,37 @@ abstract class ResponseOutputItem with _$ResponseOutputItem {
 /// Response returned by `POST /v1/responses` (Codex compatibility).
 @freezed
 abstract class ResponsesResponse with _$ResponsesResponse {
+  /// Creates a [ResponsesResponse] instance.
   const factory ResponsesResponse({
+    /// Unique response ID.
     required String id,
+
+    /// Object type, typically 'response'.
     @Default('response') String object,
+
+    /// Unix timestamp when created.
     required int created,
+
+    /// Model ID used.
     required String model,
+
+    /// Response status, typically 'completed'.
     @Default('completed') String status,
+
+    /// Output items.
     required List<ResponseOutputItem> output,
+
+    /// Combined text of the output.
     @JsonKey(name: 'output_text') String? outputText,
+
+    /// Token usage statistics.
     Usage? usage,
+
+    /// Raw response body map.
     @Default({}) Map<String, dynamic> raw,
   }) = _ResponsesResponse;
 
+  /// Creates a [ResponsesResponse] from a JSON map.
   factory ResponsesResponse.fromJson(Map<String, dynamic> json) =>
       _$ResponsesResponseFromJson(json).copyWith(raw: json);
 }

@@ -5,6 +5,7 @@ import '../models/models.dart';
 class ModelsService {
   final OmlxHttpClient _client;
 
+  /// Creates a [ModelsService] instance.
   const ModelsService(this._client);
 
   /// Lists all discovered models (`GET /v1/models`).

@@ -5,6 +5,7 @@ import '../models/rerank.dart';
 class RerankService {
   final OmlxHttpClient _client;
 
+  /// Creates a [RerankService] instance.
   const RerankService(this._client);
 
   /// Reranks documents based on semantic relevance to a query.

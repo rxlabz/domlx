@@ -6,6 +6,7 @@ part 'audio.g.dart';
 /// Request for `POST /v1/audio/transcriptions` (Speech-to-Text).
 @freezed
 abstract class AudioTranscriptionRequest with _$AudioTranscriptionRequest {
+  /// Creates an [AudioTranscriptionRequest] instance.
   const factory AudioTranscriptionRequest({
     /// The audio file bytes to transcribe.
     required List<int> fileBytes,
@@ -33,11 +34,16 @@ abstract class AudioTranscriptionRequest with _$AudioTranscriptionRequest {
 /// Response returned by `POST /v1/audio/transcriptions`.
 @freezed
 abstract class AudioTranscriptionResponse with _$AudioTranscriptionResponse {
+  /// Creates an [AudioTranscriptionResponse] instance.
   const factory AudioTranscriptionResponse({
+    /// The transcribed text.
     @Default('') String text,
+
+    /// The raw response map.
     @Default({}) Map<String, dynamic> raw,
   }) = _AudioTranscriptionResponse;
 
+  /// Creates an [AudioTranscriptionResponse] from a JSON map.
   factory AudioTranscriptionResponse.fromJson(Map<String, dynamic> json) =>
       _$AudioTranscriptionResponseFromJson(json).copyWith(raw: json);
 }
@@ -45,6 +51,7 @@ abstract class AudioTranscriptionResponse with _$AudioTranscriptionResponse {
 /// Request for `POST /v1/audio/speech` (Text-to-Speech).
 @freezed
 abstract class AudioSpeechRequest with _$AudioSpeechRequest {
+  /// Creates an [AudioSpeechRequest] instance.
   const factory AudioSpeechRequest({
     /// Model ID (e.g., 'tts-1', 'mlx-community/Kokoro-82M').
     required String model,
@@ -62,6 +69,7 @@ abstract class AudioSpeechRequest with _$AudioSpeechRequest {
     double? speed,
   }) = _AudioSpeechRequest;
 
+  /// Creates an [AudioSpeechRequest] from a JSON map.
   factory AudioSpeechRequest.fromJson(Map<String, dynamic> json) =>
       _$AudioSpeechRequestFromJson(json);
 }

@@ -5,6 +5,7 @@ import '../models/chat.dart';
 class ChatService {
   final OmlxHttpClient _client;
 
+  /// Creates a [ChatService] instance.
   const ChatService(this._client);
 
   /// Creates a non-streaming chat completion.

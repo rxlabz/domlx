@@ -453,7 +453,7 @@ void main() {
         expect(request.url.toString(), 'http://localhost:8000/prefix/v1/models');
         // Non-ASCII and emojis without charset=utf-8 in Content-Type
         return http.Response.bytes(
-          utf8.encode(jsonEncode({'object': 'list', 'data': [], 'note': '日本語 🚀'})),
+          utf8.encode(jsonEncode({'object': 'list', 'data': <dynamic>[], 'note': '日本語 🚀'})),
           200,
           headers: {'content-type': 'application/json'},
         );
@@ -817,7 +817,7 @@ void main() {
               'created': 1710000000,
               'model': 'qwen',
               'status': 'completed',
-              'output': [],
+              'output': <dynamic>[],
               'output_text': 'Response text',
             }),
             200,
@@ -992,7 +992,7 @@ void main() {
           jsonEncode({
             'object': 'list',
             'model': 'emb',
-            'data': [],
+            'data': <dynamic>[],
           }),
           200,
           headers: {'content-type': 'application/json'},

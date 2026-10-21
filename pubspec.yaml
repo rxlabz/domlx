@@ -1,6 +1,6 @@
 name: domlx
-description: A Dart client library for oMLX
-version: 1.0.0
+description: A Dart client library for oMLX (OpenAI-compatible local LLM for Apple Silicon) with reasoning, tool calling, structured output, TTS & STT.
+version: 1.0.1
 repository: https://github.com/rxlabz/domlx
 
 environment:
