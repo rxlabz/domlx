@@ -165,6 +165,22 @@ void main() async {
       text: 'Semantic search with local Apple Silicon embeddings.',
     );
     print('Vector dimensions: ${vector.length}');
+    print('');
+
+    print('=== 9. Text-to-Speech (TTS) ===');
+    final audioBytes = await client.audio.speech(
+      const AudioSpeechRequest(
+        model: 'mlx-community/Kokoro-82M-bf16',
+        input: 'Hello from oMLX running locally on Apple Silicon!',
+        voice: 'af_heart',
+        responseFormat: 'mp3',
+      ),
+    );
+    final outputFile = File('output.mp3');
+    await outputFile.writeAsBytes(audioBytes);
+    print(
+      'Saved ${audioBytes.length} bytes of audio to ${outputFile.path}',
+    );
   } on OmlxApiException catch (e) {
     print('API Error [HTTP ${e.statusCode}]: ${e.message}');
     if (e.isModelNotFound) {

@@ -29,12 +29,6 @@ dependencies:
   domlx: ^1.0.0
 ```
 
-Then run:
-
-```bash
-dart pub get
-```
-
 ---
 
 ## Quick Start
@@ -200,7 +194,7 @@ Rerank retrieved passages according to semantic relevance:
 
 ```dart
 final rankings = await client.rerank.rank(
-  model: 'bge-reranker-large',
+  model: 'mlx-community/jina-reranker-v3-mlx',
   query: 'How does prefix caching improve LLM latency?',
   documents: [
     'Prefix caching reuses KV cache for repeated prompt prefixes.',
@@ -219,7 +213,7 @@ for (final result in rankings) {
 
 ```dart
 final vector = await client.embeddings.createVector(
-  model: 'bge-micro',
+  model: 'mlx-community/bge-m3-mlx-4bit',
   text: 'Apple Silicon Unified Memory Architecture',
 );
 print('Embedding vector dimensions: ${vector.length}');
@@ -252,7 +246,7 @@ final transcription = await client.audio.transcribe(
   AudioTranscriptionRequest(
     fileBytes: await File('audio.mp3').readAsBytes(),
     filename: 'audio.mp3',
-    model: 'whisper-large-v3',
+    model: 'mlx-community/whisper-large-v3-turbo',
   ),
 );
 print('Transcription: ${transcription.text}');
@@ -260,28 +254,48 @@ print('Transcription: ${transcription.text}');
 // Text-to-Speech
 final audioBytes = await client.audio.speech(
   AudioSpeechRequest(
-    model: 'tts-1',
+    model: 'mlx-community/Kokoro-82M-bf16',
     input: 'Hello from oMLX running locally on Mac!',
-    voice: 'alloy',
+    voice: 'af_heart',
     responseFormat: 'mp3',
   ),
 );
 await File('output.mp3').writeAsBytes(audioBytes);
 ```
 
-#### AUdio models
+#### Audio Models
 
-Kokoro 82M bf16 https://huggingface.co/mlx-community/Kokoro-82M-bf16
-- Voices
-  - us : 
-    - F: af_heart af_bella af_nova af_sky	
-    - M: am_adam am_echo
-  - en : 
-    - F: bf_alice bf_emma
-    - M: bm_daniel bm_george
+- **[Kokoro 82M bf16](https://huggingface.co/mlx-community/Kokoro-82M-bf16)** (`mlx-community/Kokoro-82M-bf16`):
+  - **US English (`us`)**:
+    - Female: `af_heart`, `af_bella`, `af_nova`, `af_sky`
+    - Male: `am_adam`, `am_echo`
+  - **British English (`en`)**:
+    - Female: `bf_alice`, `bf_emma`
+    - Male: `bm_daniel`, `bm_george`
+- See the [MLX Audio Models Directory](https://blaizzy.github.io/mlx-audio/models/) for additional supported STT and TTS models.
 
+### 9. Text Completions & OpenAI Responses API
 
-https://blaizzy.github.io/mlx-audio/models/
+```dart
+// Legacy text completions (/v1/completions)
+final text = await client.completions.generate(
+  model: 'mlx-community/Qwen2.5-7B-Instruct-4bit',
+  prompt: 'Once upon a time in Silicon Valley,',
+  maxTokens: 64,
+);
+print(text);
+
+// OpenAI Responses API (/v1/responses)
+final response = await client.responses.create(
+  ResponsesRequest(
+    model: 'mlx-community/Qwen2.5-7B-Instruct-4bit',
+    instructions: 'Reply concisely.',
+    input: 'What is unified memory?',
+    store: true,
+  ),
+);
+print(response.outputText);
+```
       
 ---
 
